@@ -157,6 +157,6 @@ for (i in 1:n.gen){
   pop.table.1$career <- pop.table.1$career+1
   
   pop.table <- pop.table.1
-  
+  print(nrow(pop.table))
 }
 
