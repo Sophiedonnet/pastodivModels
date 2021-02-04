@@ -153,8 +153,8 @@ for (i in 1:n.gen){
   # increment career of all animals
   pop.table.1$career <- pop.table.1$career+1
   
-  pop.table <- rbind(pop.table,pop.table.1)
-  
+  pop.table <- pop.table.1
+  print(nrow(pop.table))
 }
 pop.table
 
