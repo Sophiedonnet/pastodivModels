@@ -2,15 +2,18 @@
 
 
 ######################
-# variables à déclarer :
-n.ram <- 2                           # ram number
-n.ewe <- 40                         # ewe number
-n.gen <- 50                        # number of generations to be simulated
+# parameters:
+param <- list(n.ram = 2,n.ewe = 40, n.gen  = 50, life.expec.ewe = 8, age.repro.ewe = 1, career.ram = 8, successrate.repro = 1)
+
+#n.ram <- 2                           # ram number
+#n.ewe <- 40                         # ewe number
+#n.gen <- 50                        # number of generations to be simulated
 #life.expec.ewe <-8
-age.repro.ewe <- 1                   # age at which an ewe will give birth / lower limit (only > will reproduce)
-career.ram <- 3                     # time a ram will be kept in the herd
+#age.repro.ewe <- 1                   # age at which an ewe will give birth / lower limit (only > will reproduce)
+#career.ram <- 8                     # time a ram will be kept in the herd
 #successrate.repro <-  1            # % of chance of giving birth for an ewe : to be added
-  
+
+
 # variables internes au modèle :
 n.pop <- n.ram + n.ewe                                              # size of the total flock (including rams)
 age.seed.ewe <-  sample(c(1:8), size = n.ewe, replace = T)          # random distribution of ages of ewes
@@ -168,7 +171,6 @@ for (i in 1:n.gen){
   pop.table <- pop.table.1
   print(nrow(pop.table))
 }
-pop.table
 
 herd
 library(GENLIB)
@@ -191,12 +193,11 @@ ped[herd$father==0,2:3]=0
 class(ped$sex)
 ped$sex=3-as.numeric(as.factor(ped$sex))
 A=gen.genealogy(ped)
-#summary(gen.graph(A))
+summary(gen.graph(A))
 
 b=gen.f(A,1:nrow(ped))
 b==0
 summary(b)
-hist(b)
 ped
 sort(ped$father)
 sort(ped$mother)
