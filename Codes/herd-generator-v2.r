@@ -1,6 +1,3 @@
-#### avant de commencer : sélectionner répertoire de travail
-
-setwd("~/Documents/.../r-consanguinity")
 
 ######################
 # variables à déclarer :
@@ -91,6 +88,7 @@ for (i in 1:n.gen){
   # extract only females in newborn 
   newborn.table.ewe <- newborn.table[newborn.table$sexe=="F",]
   n.newborn.ewe <- nrow(newborn.table.ewe)
+  
   # control ewe ages and remove old ones
   newpop.table.ewe <- pop.table[!pop.table$age == 8 & pop.table$sexe=="F",]
   n.oldewe <- nrow(pop.table[pop.table$age == 8 & pop.table$sexe=="F",])
@@ -125,8 +123,7 @@ for (i in 1:n.gen){
     
     table.keptram <- table.ram[!table.ram$career > career.ram,]
     newpop.table.ram <- rbind(table.oldram, table.keptram)
-  } 
-  else {
+  } else {
     newpop.table.ram <-table.ram
   }
   # bind the two tables after 
@@ -159,4 +156,7 @@ for (i in 1:n.gen){
   pop.table <- pop.table.1
   print(nrow(pop.table))
 }
+pop.table
+
+
 

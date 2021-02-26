@@ -173,10 +173,15 @@ pop.table
 herd
 library(GENLIB)
 names(herd)
+herd$id
+herd[herd$id==herd$mother[85],]
 
 
 herd=herd[!duplicated(herd$id),]
 ped = herd
+ped$sexe
+class(ped$id)
+herd[85,]
 LEV = unique(c((ped$id),(ped$father),(ped$mother)))
 ped$id=as.numeric(factor(ped$id,levels=LEV))
 ped$father=as.numeric(factor(ped$father,levels=LEV))
@@ -186,14 +191,11 @@ ped[herd$father==0,2:3]=0
 class(ped$sex)
 ped$sex=3-as.numeric(as.factor(ped$sex))
 A=gen.genealogy(ped)
-
-(gen.graph(A))
 #summary(gen.graph(A))
 
 b=gen.f(A,1:nrow(ped))
 b==0
 summary(b)
-boxplot(b)
 hist(b)
 ped
 sort(ped$father)
