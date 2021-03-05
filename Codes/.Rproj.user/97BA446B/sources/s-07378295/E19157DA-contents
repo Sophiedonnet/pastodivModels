@@ -1,7 +1,10 @@
-initialize_herd <- function(num_herd,param=list()){
-  # num_herd num to identify the herd
-  # param list of useful parameters for initialising the herd
-  #----------------------------------------------
+####################################################################
+initialize_herd <- function(num_herd,param=list(),seed=NULL){
+####################################################################
+# num_herd num to identify the herd
+# param list of useful parameters for initialising the herd
+#----------------------------------------------
+  if(!is.null(seed)){set.seed(seed)}
   param_default <- list(n.ram = 2,
                         n.ewe = 40,
                         career.ram = 8,
@@ -9,10 +12,6 @@ initialize_herd <- function(num_herd,param=list()){
                         career.ewe = 8,
                         age.min.ewe = 0
   )
-  
-  param_default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
-  names(param_default$rate.repro) = c('nb.lambds','probability')
-  
   #---------------------------------------------
   param_default[names(param)] <- param
   
@@ -25,7 +24,22 @@ initialize_herd <- function(num_herd,param=list()){
   return(pop.table)
 }
 
-#initialize_herd(num_herd=2)
+####################################################################
+module_aging = function(pop.table,param){
+  
+
+  pop.table$age <- pop.table$age  + 1
+  wM <- which((pop.table$sex=='M') & (pop.table$age > param$career.ram))
+  wF <- which((pop.table$sex=='F') & (pop.table$age > param$career.ewe))
+  
+  pop.table$herd[wM] = - 1
+  pop.table$herd[wF] = - 1
+  
+  return(pop.table)
+  
+}
+
+initialize_herd(num_herd=1,seed=10)
 
 # reproduction intra troupeau
 module_reproduction_intra(Lherds,param=list())

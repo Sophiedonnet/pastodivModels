@@ -1,0 +1,139 @@
+
+
+VBEM_PoissonMixtures <- function(Y, a, b, e, rho = NULL) {
+  
+  K <- length(e)
+  #----------------- Initialisation
+  U = range(Y)
+  init_clust = kmeans(Y, seq(U[1], U[2], length = K))
+  if (is.null(rho)) {
+    rho <- 0.05
+  }
+  tau_init = matrix(rho, n, K)
+  for (i in 1:n) {
+    tau_init[i, init_clust$cluster[i]] = 1 - (K - 1) * rho
+    tau_init[i, ] = tau_init[i, ] / sum(tau_init[i, ])
+  }
+  tau <- tau_init
+  eVB = rep(0, K)
+  aVB = rep(0, K)
+  bVB = rep(0, K)
+  #------------------------    VBEM
+  stop = FALSE
+  iter = 0
+  while (stop == FALSE) {
+
+    iter = iter + 1
+
+    #paramètre courant
+    eVBc <- eVB
+    aVBc <- aVB
+    bVBc <- bVB
+
+    #-------------- M
+    eVB = colSums(tau) + e
+    aVB = c(a + Y %*% tau)
+    bVB = b + colSums(tau)
+
+    #------------- E
+    B1 <-  Y %o% (digamma(aVB) - log(bVB))
+    B2 <- digamma(eVB) - digamma(sum(eVB)) - aVB / bVB
+    rho <- B1 + matrix(B2,nrow = n, ncol = K, byrow = T)
+
+    tau <- exp(rho - mean(rho))
+    for (i in 1:n) {
+      tau[i, ] = tau[i, ] / sum(tau[i, ])
+    }
+
+    d  = sum((eVB - eVBc) ^ 2 + (aVB - aVBc) ^ 2 + (bVB - bVBc) ^ 2)
+
+    stop <- (d < 10 ^ (-6))
+  }
+  res <- list(iter = iter, aVB = aVB, bVB = bVB,eVB = eVB,tau=tau)
+  return(res)
+}
+
+
+########################################################################
+###################################################""
+######### GIBBS  POISSON mixtures#####################################""
+#####################################################"""
+Gibbs_PoissonMixtures <- function(Y, a, b, e,M){
+
+  K <- length(e)
+  #----------------- Initialisation
+  U = range(Y)
+  init_clust = kmeans(Y, seq(U[1], U[2], length = K))
+  Z <- matrix(0, n, K)
+  for (i in 1:n) {
+    Z[i, init_clust$cluster[i]] = 1
+  }
+
+  #---------------   Stockage de simulation
+  mat_mu <- matrix(0,M,K)
+  mat_pi <- matrix(0,M,K)
+  #----------------- GIBBS
+  for (m in 1:M) {
+    if(m%% 1000 == 0) {print(paste('iter',m,sep=' '))}
+
+    #----------------- mu | Z Y
+    N <- colSums(Z)
+    S <- c(Y %*% Z)
+    mu <- rgamma(K, S + a, N + b)
+    mat_mu[m, ] <- mu
+
+    #----- pi | Z  Y
+    pi_prop <- rdirichlet(1, e + N)
+    mat_pi[m, ] <- pi_prop
+
+    #--------- Z | theta Y
+
+    rho <- -matrix(mu,nrow = n, ncol = K,byrow = T) + Y %o% log(mu) + matrix(log(pi_prop),nrow = n,ncol = K,byrow = T)
+    pcondZ <- exp(rho - mean(rho))
+    for (i in 1:n) {
+      pcondZ[i, ] = pcondZ[i, ] / sum(pcondZ[i, ])
+      Z[i, ] = rmultinom(1, 1, pcondZ[i, ])
+    }
+  }
+  return(list(mat_mu = mat_mu, mat_pi = mat_pi))
+
+}
+
+# #################################################"
+# ####### BURN in
+# ind <- seq(M/2,M,by = 5)
+# mu_post <- mat_mu[ind,]
+# pi_post <- mat_pi[ind,]
+#
+#
+# # TRAJECTOIRES
+# par(mfrow = c(2,K))
+# for (k in 1:K){
+#   plot(mu_post[,k],type='l')
+#   abline(h  = mutrue[k],col='purple',lwd=2)
+# }
+# for (k in 1:K){
+#   plot(pi_post[,k],type='l')
+#   abline(h  = pi_prop[k],col='purple',lwd=2)
+# }
+#
+# ############################# LOIS a posteriori
+#
+# par(mfrow = c(2,K))
+# for (k in 1:K) {
+#   xlim <- range(mu_post[,k])
+#   curve(dgamma(x,aVB[k],bVB[k]),xlim[1],xlim[2],ylab = 'dens',col = 'red')
+#   curve(dgamma(x,a ,b ),add = TRUE,col = 'green')
+#   lines(density(mu_post[,k]),col='magenta')
+#   abline(v  = mutrue[k],col = 'purple')
+# }
+# for (k in 1:K) {
+#   curve(dbeta(x,eVB[k],sum(eVB) - eVB[k]),0,1,ylab = 'dens',col = 'red')
+#   curve(dbeta(x,e[k] ,sum(e) - e[k] ),add = TRUE,col = 'green')
+#   abline(v  = pi_prop[k],col = 'purple')
+#   lines(density(pi_post[,k]),col='magenta')
+# }
+#
+#
+#
+#

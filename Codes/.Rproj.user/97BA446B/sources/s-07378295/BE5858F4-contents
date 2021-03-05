@@ -1,0 +1,59 @@
+---
+title: "Notes For PastoDivModels"
+author: "Sophie Donnet (INRAE) and Piere Barbillon (AgroParisTech)"
+date: "26/02/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Contexte
+
+Simulation de plusieurs troupeaux à la fin. 
+Tout est stocské dans un meme fichier. 
+
+A chaque génération on a besoin d'un fichier contenant
+
+id - Pere - Mere - Age - troupeau - Sexe
+
+L'objet courant est la composition du troupeau 
+id - Pere - Mere - Age - troupeau -Sex 
+
+
+Ils se reproduisent au sein d'un même troupeau  ou bien on a un réseau entre troupeaux et les males sont utilisés pour de 
+
+
+On a besoin d'une fonction 
+- reproduction
+- elimination (garder troupeau à taille constante) ou échange avec d'autres selon 
+
+
+On aurait un modèle général avec des modules
+ - de reproduction et  d'échanges de moutons
+  reproduciton : seulement intra troupeaux 
+
+
+
+
+On nomme un mouton par
+GenerationDApparition.NumeroTroupeauDApparition.Numero
+
+On pourra récupérer chaque info par `unlist(strsplit(nom, "[.]"))`. 
+
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

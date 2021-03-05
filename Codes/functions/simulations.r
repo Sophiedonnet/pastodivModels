@@ -1,7 +1,5 @@
 simulInitGeneration <- function(param=list()){
   
-  
-  
   #----------------------------------------------
   param_default <- list(n.ram = 2,
                         n.ewe = 40, 
