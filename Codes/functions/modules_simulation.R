@@ -185,7 +185,9 @@ module.replaceEwe.intraHerd = function(pop.table,newborn.table,param=list()){
 choose.Ram <- function(network,n,mode = "intra") 
 {
   switch(mode,
-         intra = {return(as.list(1:n))})
+         intra = {return(as.list(1:n))},
+         melange = {}
+         )
   
 }
 
@@ -217,7 +219,7 @@ diag(herds.Network) <- 0
 
 # fonction generale
 n.generations <- 1
-Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Network)
+Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Network,LHerds=NULL)
 {
   
   if(is.null(param.allHerds)){
@@ -236,7 +238,8 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
   }
   
   ################### initialisation   = génération 0 
-  LHerds = lapply(1:n.herds,function(i){module.initialize.oneHerd(i,param = param.allHerds[[i]])})
+  if (is.null(LHerds))
+    LHerds = lapply(1:n.herds,function(i){module.initialize.oneHerd(i,param = param.allHerds[[i]])})
   
   for (gen in 1:n.generations){ 
     
