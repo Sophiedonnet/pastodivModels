@@ -269,5 +269,6 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
       }
     }
   }
+  return(LHerds)
 }
   
