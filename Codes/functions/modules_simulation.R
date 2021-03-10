@@ -103,7 +103,7 @@ module.reproduction.intraHerd = function(pop.table,num.gen,param=list())
 ####################################################################
 # reproduction inter troupeaux
 ####################################################################
-module.reproduction.interHerds = function(pop.table.ewe,pop.table.ram,num.gen,param=list())
+module.reproduction = function(pop.table.ewe,pop.table.ram,num.gen,param=list())
 {
   ######################################################
   param.default <- list(n.ram = 2,
@@ -123,7 +123,7 @@ module.reproduction.interHerds = function(pop.table.ewe,pop.table.ram,num.gen,pa
   ######################################################## 
   
   repro.ewe.table <- pop.table.ewe[(pop.table.ewe$herd != -1) & (pop.table.ewe$sex == "F") & (pop.table.ewe$age > param.default$age.repro.ewe),] # ewe able to do babies
-  repro.ram.table <- pop.table.ram[(pop.table.ram$herd != -1) & (pop.table.ram$sex == "M") & (pop.table.ram$age > param.default$age.repro.ram),] # ram able to do babies
+  repro.ram.table <- pop.table.ram[(pop.table.ram$herd != -1) & (pop.table.ram$sex == "M"),] # ram able to do babies
   
   n.repro.ewe <- nrow(repro.ewe.table)             # nbre de ewe able to do babies
   n.newborns.per.ewe <- sample(param.default$rate.repro[,1],n.repro.ewe,replace = TRUE,prob  = param.default$rate.repro[,2]) # nb of newborns per ewe.
@@ -183,12 +183,37 @@ module.replaceEwe.intraHerd = function(pop.table,newborn.table,param=list()){
 ####################################################################
 # choose rams for each herd
 ####################################################################  
-choose.Ram <- function(network,n,mode = "intra") 
+choose.Ram.reproduction <- function(network,n,mode = "intra") 
 {
   switch(mode,
          intra = {return(as.list(1:n))},
          melange = {}
          )
+}
+
+
+choose.Ram.replace <- function(network,n,mode = "intra") 
+{
+  switch(mode,
+         intra = {return(as.list(1:n))},
+         melange = {}
+  )
+}
+
+
+module.replaceEwe.intraHerd = function(pop.table,newborn.table,param=list()){
+  
+  param.default <- list(n.ram = 2,
+                        n.ewe = 40,
+                        career.ram = 8,
+                        age.min.ram=0,
+                        career.ewe = 8,
+                        age.min.ewe = 0,
+                        age.repro.ewe = 3,
+                        age.repro.ram = 1
+  )
+  
+  
   
 }
 
@@ -247,8 +272,8 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     LHerds <- lapply(1:n.herds,function(i){module.aging.oneHerd(pop.table = LHerds[[i]],param = param.allHerds[[i]])})
     
     
-    pat <- choose.Ram(herds.Network,n.herds)
-    newBorns <- lapply(1:n.herds,function(i){module.reproduction.interHerds(pop.table.ewe = LHerds[[i]],pop.table.ram = do.call("rbind",LHerds[pat[[i]]]),gen,param = param.allHerds[[i]])})
+    pat <- choose.Ram.reproduction(herds.Network,n.herds)
+    newBorns <- lapply(1:n.herds,function(i){module.reproduction(pop.table.ewe = LHerds[[i]],pop.table.ram = do.call("rbind",LHerds[pat[[i]]]),gen,param = param.allHerds[[i]])})
     
     
     resultsReplace <- lapply(1:n.herds,function(i){module.replaceEwe.intraHerd(pop.table = LHerds[[i]],newBorns[[i]],param = param.allHerds[[i]])})
@@ -256,22 +281,23 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     LHerds <- lapply(1:n.herds,function(i){resultsReplace[[i]]$pop.table})
     Lnewborns.togive <- lapply(1:n.herds,function(i){resultsReplace[[i]]$newborn.togive})
     
-    for (i in 1:n.herds){
-      
-      pop.table.i <- LHerds[[i]]
-      param.i <- param.allHerds[[i]]
-      w.R.TooOld <- which((pop.table.i$herd != -1) & (pop.table.i$sex=='M') & pop.table.i$age > param.i$age.repro.ram)  
-      n.R.TooOld <- length(w.R.TooOld)
-      if (n.R.TooOld > 0){
-        donnor.i <-sample(which(herds.Network[i,]==1),1)
-        L.i <- Lnewborns.togive[[donnor.i]]
-        L.i <- L.i[L.i$sex=='M',][sample(1:nrow(L.i),n.R.TooOld,replace=FALSE),]
-        L.i$herd <- i
-        pop.table.i$herd[w.R.TooOld]<- -1
-        pop.table.i <- rbind(pop.table.i,L.i)
-        LHerds[[i]] <- pop.table.i
-      }
+    
+  for (i in 1:n.herds){
+
+    pop.table.i <- LHerds[[i]]
+    param.i <- param.allHerds[[i]]
+    w.R.TooOld <- which((pop.table.i$herd != -1) & (pop.table.i$sex=='M') & pop.table.i$age > param.i$age.repro.ram)
+    n.R.TooOld <- length(w.R.TooOld)
+    if (n.R.TooOld > 0){
+      donnor.i <-sample(which(herds.Network[i,]==1),1)
+      L.i <- Lnewborns.togive[[donnor.i]]
+      L.i <- L.i[L.i$sex=='M',][sample(1:nrow(L.i),n.R.TooOld,replace=FALSE),]
+      L.i$herd <- i
+      pop.table.i$herd[w.R.TooOld]<- -1
+      pop.table.i <- rbind(pop.table.i,L.i)
+      LHerds[[i]] <- pop.table.i
     }
+  }
   }
   return(LHerds)
 }
