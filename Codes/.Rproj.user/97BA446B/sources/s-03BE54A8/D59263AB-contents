@@ -1,26 +1,26 @@
 
 ####################################################################
 module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
-  ####################################################################
-  # num.herd num to identify the herd
-  # param list of useful parameters for initialising the herd
-  #----------------------------------------------
-  if(!is.null(seed)){set.seed(seed)}
+####################################################################
+    # num.herd num to identify the herd
+    # param list of useful parameters for initialising the herd
+    #----------------------------------------------
+    if(!is.null(seed)){set.seed(seed)}
   
   
-  pop.table = data.frame(ind=paste("0",num.herd,1:(param$n.ewe+param$n.ram),sep="-"),
+    pop.table = data.frame(ind=paste("0",num.herd,1:(param$n.ewe+param$n.ram),sep="-"),
                          father = "0",mother = "0",
                          herd=num.herd,
                          sex=c(rep("M",param$n.ram),rep("F",param$n.ewe)),
                          age = c(sample(param$age.min.ram:(param$career.ram-1),replace = T,param$n.ram),
                                  sample(param$age.min.ewe:(param$career.ewe-1),replace=T,param$n.ewe)))
-  return(pop.table)
+   return(pop.table)
 }
 
 
 ####################################################################
 module.aging.oneHerd = function(pop.table,param=list()){
-  ####################################################################
+####################################################################
   
   if(!is.data.frame(pop.table)){stop()}
   # age  +1 for any animal. 
@@ -50,9 +50,9 @@ module.aging.oneHerd = function(pop.table,param=list()){
 
 ###########reproduction intra troupeau  ################################
 module.reproduction.intraHerd = function(pop.table,num.gen,param=list())
-  ####################################################################
+####################################################################
 {
-  
+
   ########################################################
   num.herd <- pop.table$herd[which(pop.table$herd != -1)[1]]
   ######################################################## 
@@ -83,11 +83,11 @@ module.reproduction.intraHerd = function(pop.table,num.gen,param=list())
 ####################################################################
 module.reproduction = function(mothers,fathers,num.gen,param=list())
 {
-  
+ 
   ########################################################
   num.herd <- mothers$herd[which(mothers$herd != -1)[1]]
   ######################################################## 
-  
+ 
   n.mothers <- nrow(mothers)             # nbre de ewe able to do babies
   n.newborns.per.mother <- sample(param$rate.repro[,1],n.mothers,replace = TRUE,prob  = param$rate.repro[,2]) # nb of newborns per ewe.
   n.newborns <- sum(n.newborns.per.mother)
@@ -103,7 +103,7 @@ module.reproduction = function(mothers,fathers,num.gen,param=list())
   newborn.table$mother <- rep(mothers$ind,n.newborns.per.mother)
   possible.father <- fathers$ind # extraction id father :
   if((n.mothers == 0)|(length(possible.father) == 0)){browser()}
-  
+
   newborn.table$father <- rep(sample(possible.father,size = n.mothers,replace = T),n.newborns.per.mother)
   return(newborn.table)
 }
@@ -141,7 +141,7 @@ module.replaceEwe.intraHerd = function(pop.table,newborn.table,param=list()){
   } else {
     newborn.togive <- newborn.table}
   
-  
+   
   res <- list(pop.table = pop.table,newborn.togive  = newborn.togive)
   return(res)
 }
@@ -156,7 +156,7 @@ choose.Ram.reproduction <- function(network,n,mode = "intra")
   switch(mode,
          intra = {return(as.list(1:n))},
          melange = {}
-  )
+         )
 }
 
 
@@ -196,9 +196,13 @@ computeInbreedingFunction = function(LHerds){
   ped$sex[w.F] <- 2
   geneal <- gen.genealogy(ped)
   u <- which(ped$herd!=-1)
-  inBreed <- gen.f(geneal,u)
+  inBreed=gen.f(geneal,u1:nrow(ped))
+  }
+  
+  
+  
+  
+  
+  
 }
-
-
-
 
