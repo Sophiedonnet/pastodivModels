@@ -87,7 +87,7 @@ module.reproduction = function(mothers,fathers,num.gen,param=list())
   ########################################################
   num.herd <- mothers$herd[which(mothers$herd != -1)[1]]
   ######################################################## 
-  
+ # browser()
   n.mothers <- nrow(mothers)             # nbre de ewe able to do babies
   possible.father <- fathers$ind
   

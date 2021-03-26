@@ -72,17 +72,23 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
       w.R.TooOld <- which((pop.table.i$herd != -1) & (pop.table.i$sex=='M') & (pop.table.i$age >= param.i$career.ram))
       n.R.TooOld <- length(w.R.TooOld)
       if (n.R.TooOld > 0){
+      
         donnor.i <-sample(which(herds.Network[i,]==1),1)
         L.i <- Lnewborns.togive[[donnor.i]]
 
         if(!is.null(L.i)){
           w.i <- which(L.i$sex == 'M')
           u <- sample(w.i,min(length(w.i),n.R.TooOld),replace=FALSE)
-          L.i <- L.i[u,]
-          L.i$herd <- i
+          L.i.given <- L.i[u,]
+          Lnewborns.togive[[donnor.i]] <- L.i[-u,] 
+          L.i.given$ herd <- i
           pop.table.i$herd[w.R.TooOld]<- -1
-          pop.table.i <- rbind(pop.table.i,L.i)
+          pop.table.i <- rbind(pop.table.i,L.i.given)
           LHerds[[i]] <- pop.table.i
+          nbRam.i <-sum((LHerds[[i]]$herd != -1) & (LHerds[[i]]$sex== 'M'))
+          print(c(i,nbRam.i))
+          if(nbRam.i> param.allHerds[[i]]$n.ram ){browser()}
+      
         }
       }
     }
@@ -90,7 +96,8 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     nbRam <- sapply(1:n.herds,function(i){sum(LHerds[[i]]$herd != -1 & LHerds[[i]]$sex== 'M')})
     nbEwe <-sapply(1:n.herds,function(i){sum(LHerds[[i]]$herd != -1 & LHerds[[i]]$sex== 'F')})
     print(param.allHerds[[1]]$n.ram)
-    if(any(nbRam>param.allHerds[[1]]$n.ram)){browser}
+   
+    if(any(nbRam>param.allHerds[[1]]$n.ram)){browser()}
     print(nbRam)
     print(nbEwe)
 
