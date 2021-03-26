@@ -89,22 +89,25 @@ module.reproduction = function(mothers,fathers,num.gen,param=list())
   ######################################################## 
   
   n.mothers <- nrow(mothers)             # nbre de ewe able to do babies
-  n.newborns.per.mother <- sample(param$rate.repro[,1],n.mothers,replace = TRUE,prob  = param$rate.repro[,2]) # nb of newborns per ewe.
-  n.newborns <- sum(n.newborns.per.mother)
-  # creation table newborn
-  newborn.table <- as.data.frame(matrix(data = NA, nrow = n.newborns , ncol=ncol(mothers)))
-  colnames(newborn.table) <- colnames(mothers)
-  # fullfilling newborn.table
-  newborn.table$ind=paste(num.gen,num.herd,1:n.newborns,sep="-")
-  newborn.table$age <- 0
-  if(n.newborns == 0){browser()}
-  newborn.table$sex <- sample(c("F","M"), size = n.newborns, replace = T)
-  newborn.table$herd <- num.herd; 
-  newborn.table$mother <- rep(mothers$ind,n.newborns.per.mother)
-  possible.father <- fathers$ind # extraction id father :
-  if((n.mothers == 0)|(length(possible.father) == 0)){browser()}
+  possible.father <- fathers$ind
   
-  newborn.table$father <- rep(sample(possible.father,size = n.mothers,replace = T),n.newborns.per.mother)
+  if ((length(possible.father)>0) & (n.mothers > 0)){
+    
+    n.newborns.per.mother <- sample(param$rate.repro[,1],n.mothers,replace = TRUE,prob  = param$rate.repro[,2]) # nb of newborns per ewe.
+    n.newborns <- sum(n.newborns.per.mother)
+    # creation table newborn
+    newborn.table <- as.data.frame(matrix(data = NA, nrow = n.newborns , ncol=ncol(mothers)))
+    colnames(newborn.table) <- colnames(mothers)
+    # fullfilling newborn.table
+    newborn.table$ind=paste(num.gen,num.herd,1:n.newborns,sep="-")
+    newborn.table$age <- 0
+    newborn.table$sex <- sample(c("F","M"), size = n.newborns, replace = T)
+    newborn.table$herd <- num.herd; 
+    newborn.table$mother <- rep(mothers$ind,n.newborns.per.mother)
+    newborn.table$father <- rep(sample(possible.father,size = n.mothers,replace = T),n.newborns.per.mother)
+  }else{
+    newborn.table = NULL
+  }
   return(newborn.table)
 }
 
@@ -130,21 +133,23 @@ module.replaceEwe.intraHerd = function(pop.table,newborn.table,param=list()){
   
   
   ################"" REPLACE the ewe that are too old. 
+  
   w.F <- which(newborn.table$sex == 'F')
   w.TooOld <- which(pop.table$herd != -1 & pop.table$sex == 'F' & pop.table$age >= param$career.ewe)
   n.TooOld <- length(w.TooOld)
   
   n.Lacking <- param$n.ewe - sum((pop.table$herd) != -1 & (pop.table$sex == 'F'))
-  if (n.TooOld > 0){
+  if ((n.TooOld > 0) & (length(w.F)>0)){
     pop.table$herd[w.TooOld]<- -1
     u <- sample(w.F,min(n.TooOld + n.Lacking,length(w.F)),replace=FALSE)
     pop.table <- rbind(pop.table,newborn.table[u,])
     newborn.togive <- newborn.table[-u,]
   } else {
-    newborn.togive <- newborn.table}
+    newborn.togive <- newborn.table
+  }
   
   
-  res <- list(pop.table = pop.table,newborn.togive  = newborn.togive)
+    res <- list(pop.table = pop.table,newborn.togive  = newborn.togive)
   return(res)
 }
 
