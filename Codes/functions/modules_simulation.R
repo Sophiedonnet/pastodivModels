@@ -133,9 +133,11 @@ module.replaceEwe.intraHerd = function(pop.table,newborn.table,param=list()){
   w.F <- which(newborn.table$sex == 'F')
   w.TooOld <- which(pop.table$herd != -1 & pop.table$sex == 'F' & pop.table$age >= param$career.ewe)
   n.TooOld <- length(w.TooOld)
+  
+  n.Lacking <- param$n.ewe - sum((pop.table$herd) != -1 & (pop.table$sex == 'F'))
   if (n.TooOld > 0){
     pop.table$herd[w.TooOld]<- -1
-    u <- sample(w.F,min(n.TooOld,length(w.F)),replace=FALSE)
+    u <- sample(w.F,min(n.TooOld + n.Lacking,length(w.F)),replace=FALSE)
     pop.table <- rbind(pop.table,newborn.table[u,])
     newborn.togive <- newborn.table[-u,]
   } else {

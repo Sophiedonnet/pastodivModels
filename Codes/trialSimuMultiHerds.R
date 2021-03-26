@@ -15,7 +15,7 @@ while(test){
 
 #herds.Network <- diag(1,n.herds)
 
-n.generations <- 20
+n.generations <- 100
 
 LHerds <- Simulate.herds(n.herds,n.generations,param.allHerds=NULL,herds.Network,computeInbreeding = FALSE)
 
