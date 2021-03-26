@@ -99,7 +99,7 @@ module.reproduction = function(mothers,fathers,num.gen,param=list())
     newborn.table <- as.data.frame(matrix(data = NA, nrow = n.newborns , ncol=ncol(mothers)))
     colnames(newborn.table) <- colnames(mothers)
     # fullfilling newborn.table
-    newborn.table$ind=paste(num.gen,num.herd,1:n.newborns,sep="-")
+    newborn.table$ind <- paste(num.gen,num.herd,1:n.newborns,sep="-")
     newborn.table$age <- 0
     newborn.table$sex <- sample(c("F","M"), size = n.newborns, replace = T)
     newborn.table$herd <- num.herd; 
@@ -119,28 +119,20 @@ module.reproduction = function(mothers,fathers,num.gen,param=list())
 module.replaceEwe.intraHerd = function(pop.table,newborn.table,param=list()){
   
 
-  test0M <-sum((pop.table$sex=='M') & (pop.table$age==0))
-  if(test0M>0){browser()}
-  pop.table.vieux <- pop.table
-  ################"" REPLACE the ewe that are too old. 
-  
   w.F <- which(newborn.table$sex == 'F')
   w.TooOld <- which(pop.table$herd != -1 & pop.table$sex == 'F' & pop.table$age >= param$career.ewe)
   n.TooOld <- length(w.TooOld)
-  
   n.Lacking <- param$n.ewe - sum((pop.table$herd != -1) & (pop.table$sex == 'F'))
-  if ((n.TooOld > 0) & (length(w.F)>0)){
+  newborn.togive <- newborn.table
+  if (n.TooOld > 0){
     pop.table$herd[w.TooOld]<- -1
-    u <- sample(1:length(w.F),min(n.TooOld + n.Lacking,length(w.F)),replace=FALSE)
-    u <- w.F[u]
-    pop.table <- rbind(pop.table,newborn.table[u,])
-    newborn.togive <- newborn.table[-u,]
-  } else {
-    newborn.togive <- newborn.table
+    if (length(w.F)>0){
+          u <- sample(1:length(w.F),min(n.TooOld + n.Lacking,length(w.F)),replace=FALSE)
+          pop.table <- rbind(pop.table,newborn.table[w.F[u],])
+          newborn.togive <- newborn.togive[-w.F[u],]
+    }
   }
-  
-  test0M <-sum((pop.table$sex=='M') & (pop.table$age==0))
-  if(test0M>0){browser()}
+   
   
   res <- list(pop.table = pop.table,newborn.togive  = newborn.togive)
   return(res)

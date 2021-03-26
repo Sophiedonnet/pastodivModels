@@ -52,13 +52,14 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     )
     
     #---------- reproduction
-    #browser()
+    
     if (inherits(try(lapply(1:n.herds,function(i){module.reproduction(mothers = mothers[[i]],fathers = fathers[[i]],gen,param = param.allHerds[[i]])})),"try-error")) browser()
     newBorns <- lapply(1:n.herds,function(i){module.reproduction(mothers = mothers[[i]],fathers = fathers[[i]],gen,param = param.allHerds[[i]])})
     
     
     #---------- replace old ewe by newborns
     if (inherits(try(lapply(1:n.herds,function(i){module.replaceEwe.intraHerd(pop.table = LHerds[[i]],newborn.table = newBorns[[i]],param = param.allHerds[[i]])})),"try-error")) browser()
+    
     resultsReplace <- lapply(1:n.herds,function(i){module.replaceEwe.intraHerd(pop.table = LHerds[[i]],newborn.table = newBorns[[i]],param = param.allHerds[[i]])})
     
     LHerds <- lapply(1:n.herds,function(i){resultsReplace[[i]]$pop.table})
@@ -67,40 +68,33 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     Lnewborns.togive <- lapply(1:n.herds,function(i){resultsReplace[[i]]$newborn.togive})
 
     for (i in 1:n.herds){
+     
       pop.table.i <- LHerds[[i]]
       param.i <- param.allHerds[[i]]
       #########################"" test
-      
-      
       w.R.TooOld <- which((pop.table.i$herd != -1) & (pop.table.i$sex=='M') & (pop.table.i$age >= param.i$career.ram))
       n.R.TooOld <- length(w.R.TooOld)
       if (n.R.TooOld > 0){
         pop.table.i$herd[w.R.TooOld]<- -1
         
-        donnor.i <-sample(which(herds.Network[i,]==1),1)
-        L.i <- Lnewborns.togive[[donnor.i]]
-        
-        if(!is.null(L.i)){
-          w.i <- which(L.i$sex == 'M')
-          u <- sample(w.i,min(length(w.i),n.R.TooOld),replace=FALSE)
-          L.i.given <- L.i[u,]
-          Lnewborns.togive[[donnor.i]] <- L.i[-u,] 
+        r <- which(herds.Network[i,]==1)
+        donnor.i <-sample(1:length(r),1)
+        L.i <- Lnewborns.togive[[r[donnor.i]]]
+        w.i <- which(L.i$sex == 'M')
+        if (length(w.i) > 0){
+          u <- sample(1:length(w.i),min(length(w.i),n.R.TooOld),replace=FALSE)
+          L.i.given <- L.i[w.i[u],]
+          Lnewborns.togive[[donnor.i]] <- L.i[-w.i[u],] 
           L.i.given$herd <- i
           pop.table.i <- rbind(pop.table.i,L.i.given)
           LHerds[[i]] <- pop.table.i
-          nbRam.i <-sum((LHerds[[i]]$herd != -1) & (LHerds[[i]]$sex== 'M'))
-          print(c(i,nbRam.i))
-          if(nbRam.i> param.allHerds[[i]]$n.ram ){browser()}
-      
         }
       }
     }
     
     nbRam <- sapply(1:n.herds,function(i){sum(LHerds[[i]]$herd != -1 & LHerds[[i]]$sex== 'M')})
     nbEwe <-sapply(1:n.herds,function(i){sum(LHerds[[i]]$herd != -1 & LHerds[[i]]$sex== 'F')})
-    print(param.allHerds[[1]]$n.ram)
    
-    if(any(nbRam>param.allHerds[[1]]$n.ram)){browser()}
     print(nbRam)
     print(nbEwe)
 

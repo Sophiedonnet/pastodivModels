@@ -42,7 +42,7 @@ hist(inBreeding)
 # essai debug -------------------------------------------------------------
 
 
-param.default <- list(n.ram = 2,
+param.default <- list(n.ram = 1,
                       n.ewe = 10,
                       career.ram = 8,
                       career.ewe = 8,
@@ -53,4 +53,4 @@ param.default <- list(n.ram = 2,
 param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
 names(param.default$rate.repro) = c('nb.lambs','probability')
 param= lapply(1:n.herds,function(i) param.default)
-LHerds <- Simulate.herds(n.herds,n.generations,param.allHerds=param,diag(n.herds),computeInbreeding = FALSE)
+LHerds <- Simulate.herds(n.herds,10,param.allHerds=param,diag(n.herds),computeInbreeding = FALSE)
