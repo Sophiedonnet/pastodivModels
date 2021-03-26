@@ -52,17 +52,21 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     )
     
     #---------- reproduction
+    #browser()
+    if (inherits(try(lapply(1:n.herds,function(i){module.reproduction(mothers = mothers[[i]],fathers = fathers[[i]],gen,param = param.allHerds[[i]])})),"try-error")) browser()
     newBorns <- lapply(1:n.herds,function(i){module.reproduction(mothers = mothers[[i]],fathers = fathers[[i]],gen,param = param.allHerds[[i]])})
     
     
     #---------- replace old ewe by newborns
+    if (inherits(try(lapply(1:n.herds,function(i){module.replaceEwe.intraHerd(pop.table = LHerds[[i]],newborn.table = newBorns[[i]],param = param.allHerds[[i]])})),"try-error")) browser()
     resultsReplace <- lapply(1:n.herds,function(i){module.replaceEwe.intraHerd(pop.table = LHerds[[i]],newborn.table = newBorns[[i]],param = param.allHerds[[i]])})
+    
     LHerds <- lapply(1:n.herds,function(i){resultsReplace[[i]]$pop.table})
     
     #-------- newborns to give to other herds
     Lnewborns.togive <- lapply(1:n.herds,function(i){resultsReplace[[i]]$newborn.togive})
     
-    
+    #browser()
     for (i in 1:n.herds){
       pop.table.i <- LHerds[[i]]
       param.i <- param.allHerds[[i]]
@@ -80,6 +84,7 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
         L.i$herd <- i
         pop.table.i$herd[w.R.TooOld]<- -1
         pop.table.i <- rbind(pop.table.i,L.i)
+        print(pop.table.i)
         LHerds[[i]] <- pop.table.i
       }
     }

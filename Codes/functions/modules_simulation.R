@@ -87,7 +87,7 @@ module.reproduction = function(mothers,fathers,num.gen,param=list())
   ########################################################
   num.herd <- mothers$herd[which(mothers$herd != -1)[1]]
   ######################################################## 
-  
+ # browser()
   n.mothers <- nrow(mothers)             # nbre de ewe able to do babies
   n.newborns.per.mother <- sample(param$rate.repro[,1],n.mothers,replace = TRUE,prob  = param$rate.repro[,2]) # nb of newborns per ewe.
   n.newborns <- sum(n.newborns.per.mother)
