@@ -1,7 +1,7 @@
 library(GENLIB)
 ############################################# ESSAI
 
-Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Network,LHerds=NULL,computeInbreeding = FALSE)
+Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Network,LHerds=NULL)
 {
   
   if(is.null(param.allHerds)){

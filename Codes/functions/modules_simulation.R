@@ -1,10 +1,10 @@
 
 ####################################################################
 module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
-  ####################################################################
-  # num.herd num to identify the herd
-  # param list of useful parameters for initialising the herd
-  #----------------------------------------------
+####################################################################
+# num.herd num to identify the herd
+# param list of useful parameters for initialising the herd
+#----------------------------------------------
   if(!is.null(seed)){set.seed(seed)}
   
   
@@ -18,39 +18,19 @@ module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
 }
 
 
-####################################################################
+############ Vieilliseement ###########################################
 module.aging.oneHerd = function(pop.table,param=list()){
-  ####################################################################
+####################################################################
   
   if(!is.data.frame(pop.table)){stop()}
-  # age  +1 for any animal. 
-  # if age > career.ram or  age > career.ewe, we set herd  = -1, meaning that they are leaving the herds forever. 
-  
-  # param <- list(n.ram = 2,
-  #                       n.ewe = 40,
-  #                       career.ram = 8,
-  #                       age.min.ram=0,
-  #                       career.ewe = 8,
-  #                       age.min.ewe = 0,
-  #                       age.repro.ewe = 3
-  # )
-  # param[names(param)] <- param
-  #---------------------------------------------
   pop.table$age <- pop.table$age  + 1
-  #wM <- which((pop.table$sex=='M') & (pop.table$age > param$career.ram))
-  #wF <- which((pop.table$sex=='F') & (pop.table$age > param$career.ewe))
-  
-  ### For rams and ewes too old : removed from to the Herds. pop.table$herd set to -1 
-  #pop.table$herd[wM] = - 1
-  #pop.table$herd[wF] = - 1
-  
   return(pop.table)
 }
 
 
 ###########reproduction intra troupeau  ################################
 module.reproduction.intraHerd = function(pop.table,num.gen,param=list())
-  ####################################################################
+####################################################################
 {
   
   ########################################################
@@ -189,6 +169,11 @@ computeInbreedingFunction = function(LHerds){
   geneal <- gen.genealogy(ped)
   u <- which(ped$herd!=-1)
   inBreed <- gen.f(geneal,u)
+  
+  U <- as.data.frame(cbind(ped$herd[u],inBreed))
+  names(U) <- c('herd','inBreed')
+  
+  return(U)
 }
 
 
