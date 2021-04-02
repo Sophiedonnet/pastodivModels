@@ -7,13 +7,13 @@ library(ggplot2)
 ######  General parameters ################# 
 
  
-n.herds  <- 10 #Nb de troupeaux
+n.herds  <- 20 #Nb de troupeaux
 n.generations <- 50 # Nb de générations
 
 
 # Parameters 
-param.default <- list(n.ram = 5,
-                      n.ewe = 10,
+param.default <- list(n.ram = 2,
+                      n.ewe = 40,
                       career.ram = 8,
                       career.ewe = 8,
                       age.min.ram = 0,
@@ -79,7 +79,6 @@ while(test){
 
 
 
-
 plot(graph_from_adjacency_matrix(t(herds.Network), mode = c("directed")))
 
 
@@ -106,6 +105,22 @@ herds.Network[n.herds,n.herds] <- 1
 plot(graph_from_adjacency_matrix(t(herds.Network), mode = c("directed")))
 
 
+
+LHerds <- Simulate.herds(n.herds ,n.generations,param.allHerds = param,herds.Network)
+inBreeding <- computeInbreedingFunction(LHerds)  
+inBreeding$herd <- as.factor(inBreeding$herd)
+ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot()+ ggtitle('Chain network')
+
+
+
+#################" SIMULATION 5 :  complete network
+
+
+herds.Network <- matrix(1,n.herds,n.herds)
+herds.Network[,1] <- herds.Network[1,] <- 0
+herds.Network[1,1] <- 1
+
+plot(graph_from_adjacency_matrix(t(herds.Network), mode = c("directed")))
 
 LHerds <- Simulate.herds(n.herds ,n.generations,param.allHerds = param,herds.Network)
 inBreeding <- computeInbreedingFunction(LHerds)  
