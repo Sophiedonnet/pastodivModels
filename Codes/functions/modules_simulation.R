@@ -102,7 +102,7 @@ module.select.parents <- function(LHerds, param.allHerds,sex){
 ########################################################
 #################### Exhange fathers
 ########################################################
-module.exhange.ram <- function(Lfathers,ram.for.repro.Network){
+module.exchange.ram <- function(Lfathers,ram.for.repro.Network){
   
     n.herds <- length(Lfathers)
     newFathers <- Lfathers

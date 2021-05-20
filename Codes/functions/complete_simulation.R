@@ -59,7 +59,7 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     
     #--- exchange fathers
     
-    Lfathers <- module.exhange.ram(Lfathers,ram.for.repro.Network)
+    Lfathers <- module.exchange.ram(Lfathers,ram.for.repro.Network)
    
     #---------- reproduction
     
