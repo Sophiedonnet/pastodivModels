@@ -35,7 +35,7 @@ herds.Network = list(ewe= NULL,ram = ram.Network,ram.for.repro = ram.Network)
 
 
 # Simulation 
-res <- Simulate.herds(n.herds,n.generations,param.allHerds=param,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = TRUE)
+res <- Simulate.herds(n.herds,n.generations,param.allHerds=param,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = FALSE)
 LHerds <- res$LHerds
 # InBreeding 
 inBreeding <- computeInbreedingFunction(LHerds)  

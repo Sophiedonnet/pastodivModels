@@ -1,4 +1,4 @@
-
+library(plyr)
 ####################################################################
 module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
 ####################################################################
@@ -275,8 +275,11 @@ computeInbreedingFunction = function(LHerds){
   ped <- allHerds
   ped <- ped[!duplicated(ped$ind),]
   
-  LEV <- unique(c(( allHerds$ind),( allHerds$father),( allHerds$mother)))
-  ped$ind <- as.numeric(factor(ped$ind,levels=LEV))
+  LEV <- unique(c(levels(allHerds$ind), levels (allHerds$father), levels(allHerds$mother)))
+  indNew <- mapvalues(ped$ind, from = LEV, to = 1:length(LEV))
+    
+  #LEV <- unique(c(( as.character(allHerds$ind)),as.character( allHerds$father),as.character( allHerds$mother)))
+  ped$ind<- as.numeric(factor(ped$ind,levels=LEV))
   ped$father <- as.numeric(factor(ped$father,levels=LEV))
   ped$mother <- as.numeric(factor(ped$mother,levels=LEV))
   
@@ -285,10 +288,10 @@ computeInbreedingFunction = function(LHerds){
   ped$father[w.without.knwon.parents] <- 0
   ped$mother[w.without.knwon.parents] <- 0
   
-  w.M <- which(ped$sex=='M')
-  w.F <- which(ped$sex=='F')
-  ped$sex[w.M] <- 1
-  ped$sex[w.F] <- 2
+  
+  ped$sex <- as.numeric(mapvalues(ped$sex, from = c("M", "F"), to = c(1, 2)))
+  
+ 
   geneal <- gen.genealogy(ped)
   u <- which(ped$herd!=-1)
   inBreed <- gen.f(geneal,u)

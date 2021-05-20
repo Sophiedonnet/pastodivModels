@@ -97,6 +97,8 @@ names(param.default$rate.repro) = c('nb.lambs','probability')
 param = lapply(1:n.herds,function(i) param.default)
 ```
 
+voir nouveau code
+
 ## Simulation des descendances de troupeaux
 
 
