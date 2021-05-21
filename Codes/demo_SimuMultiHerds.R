@@ -4,6 +4,7 @@ source('functions/complete_simulation.R')
 library(igraph)
 library(ggplot2)
 library(dplyr)
+library(plyr)
 ######  General parameters ################# 
 
  

@@ -1,4 +1,6 @@
 library(plyr)
+library(tidyverse)
+
 ####################################################################
 module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
 ####################################################################
@@ -275,13 +277,17 @@ computeInbreedingFunction = function(LHerds){
   ped <- allHerds
   ped <- ped[!duplicated(ped$ind),]
   
-  LEV <- unique(c(levels(allHerds$ind), levels (allHerds$father), levels(allHerds$mother)))
-  indNew <- mapvalues(ped$ind, from = LEV, to = 1:length(LEV))
+  
+  U <- ped[,1:3]
+  U <- U %>% gather(key= 'fam','id')
+  U$id <- as.factor(U$id)
+  
+  U$id <- mapvalues(U$id, from = levels(U$id), to = 1:length(levels(U$id)))
+  ped$ind <- 
     
-  #LEV <- unique(c(( as.character(allHerds$ind)),as.character( allHerds$father),as.character( allHerds$mother)))
-  ped$ind<- as.numeric(factor(ped$ind,levels=LEV))
-  ped$father <- as.numeric(factor(ped$father,levels=LEV))
-  ped$mother <- as.numeric(factor(ped$mother,levels=LEV))
+  ped$ind<- as.numeric(indNew)
+  ped$father <- as.numeric(mapvalues(ped$father, from = LEV, to = 1:length(LEV)))
+  ped$mother <-as.numeric( mapvalues(ped$mother, from = LEV, to = 1:length(LEV)))
   
   
   w.without.knwon.parents  <-  which(ped$father==which(LEV == "0"))
