@@ -44,7 +44,7 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     colnames(inBreeding) <- c("herd","inBreed", "gen")
   }
   ###################  GENERATIONS
-  while(gen <= n.generations){ 
+  while(gen < n.generations){ 
     gen <- gen + 1
     
     #-------------------  tout le monde prend 1 an

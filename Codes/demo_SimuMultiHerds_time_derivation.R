@@ -6,13 +6,13 @@ library(tidyverse)
 ######  General parameters ################# 
 
  
-n.herds  <- 10 #Nb de troupeaux
+
 n.generations <- 50 # Nb de générations
 
 
 # Parameters 
-param.default <- list(n.ram = 3,
-                      n.ewe = 40,
+param.default <- list(n.ram = 5,
+                      n.ewe = 80,
                       career.ram = 8,
                       career.ewe = 8,
                       age.min.ram = 0,
@@ -21,7 +21,7 @@ param.default <- list(n.ram = 3,
                       age.repro.ram = 1)
 param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
 names(param.default$rate.repro) = c('nb.lambs','probability')
-param= lapply(1:n.herds,function(i) param.default) # here same parameters for all the Herds. 
+
 
 
 ####################################################################""
@@ -29,6 +29,8 @@ param= lapply(1:n.herds,function(i) param.default) # here same parameters for al
 #######################################################################"
 
 # Network
+n.herds  <- 1 #Nb de troupeaux
+param= lapply(1:n.herds,function(i) param.default) # here same parameters for all the Herds. 
 
 ram.Network <- diag(1,n.herds)
 plot(graph_from_adjacency_matrix(ram.Network, mode = c("directed")))
@@ -36,38 +38,45 @@ herds.Network = list(ewe.for.replace= NULL,ram.for.replace = ram.Network,ram.for
 
 
 # Simulation 
-res <- Simulate.herds(n.herds,n.generations,param.allHerds=param,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = FALSE)
+seed = sample(1:100,1)
+set.seed(seed)
+res <- Simulate.herds(n.herds,n.generations,param.allHerds=param,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = TRUE)
 LHerds <- res$LHerds
-# InBreeding 
 
+# InBreeding  along time
+inBreedingTime <- res$inBreeding
+inBreedingTime$herd <- as.factor(inBreedingTime$herd)
+inBreedingTime$gen <- as.factor(inBreedingTime$gen)
+ggplot(inBreedingTime,aes(col=gen,y=inBreed,x=gen)) + geom_boxplot() + ggtitle('One herd') +  theme(legend.position='none')
 
-inBreeding <- computeInbreedingFunction(LHerds)  
-inBreeding$herd <- as.factor(inBreeding$herd)
+ggsave("slides/alongtime_oneherd.png")
 
-ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
-ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() + ggtitle('independant ')
  
+
 
 #######################################################################"
 #################" SIMULATION 2 : Hub : one people gives to all the others
 #######################################################################"
+n.herds = 10;
+param= lapply(1:n.herds,function(i) param.default)
+
 ram.Network <- diag(0,n.herds)
 ram.Network[,1] <- 1
 ram.Network[n.herds,1] <- 0
 ram.Network[n.herds,n.herds] <- 1
-herds.Network = list(ewe.for.replace= NULL,ram.for.replace = ram.Network,ram.for.repro = ram.Network)
+herds.Network = list(ewe.for.replace= NULL,ram.for.replace =ram.Network,ram.for.repro = ram.Network+diag(n.herds))
 plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")))
-
+plot(graph_from_adjacency_matrix(t(herds.Network$ram.for.repro), mode = c("directed")))
 
 # Simulation 
-res <- Simulate.herds(n.herds,n.generations,param.allHerds = param,herds.Network = herds.Network,LHerds = NULL)
+res <- Simulate.herds(n.herds,n.generations,param.allHerds = param,herds.Network = herds.Network,LHerds = NULL,computeInbreeding  = TRUE)
 LHerds <- res$LHerds
-# InBreeding 
-inBreeding <- computeInbreedingFunction(LHerds)  
-inBreeding$herd <- as.factor(inBreeding$herd)
+inBreedingTime <- res$inBreeding
+inBreedingTime <- inBreedingTime %>% group_by(herd,gen) %>%summarise(mean_inbreed = mean(inBreed)) %>%mutate(herd = as.factor(herd))
+ggplot(inBreedingTime,aes(y=mean_inbreed,x=gen,group=herd)) + geom_line(aes(linetype=herd, color=herd)) + ggtitle('Star + one isolated ') 
+ggsave("slides/alongtime_meantenherds.png")
 
-ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
-ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() +   ggtitle('Hub network')
+
 
 #######################################################################"
 #################" SIMULATION 3 : random network

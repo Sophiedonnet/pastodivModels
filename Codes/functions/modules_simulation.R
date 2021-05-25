@@ -273,29 +273,24 @@ computeInbreedingFunction = function(LHerds){
   
   n.herds <- length(LHerds)
   size.herds <- sapply(1:n.herds,function(i){nrow(LHerds[[i]])})
-  allHerds <- do.call("rbind",LHerds)
-  ped <- allHerds
+  
+  ### construction de la généalogie
+  ped <- do.call("rbind",LHerds)
   ped <- ped[!duplicated(ped$ind),]
   
-  
-  U <- ped[,1:3]
-  U <- U %>% gather(key= 'fam','id')
-  U$id <- as.factor(U$id)
-  
-  U$id <- mapvalues(U$id, from = levels(U$id), to = 1:length(levels(U$id)))
-  ped$ind <- 
-    
-  ped$ind<- as.numeric(indNew)
-  ped$father <- as.numeric(mapvalues(ped$father, from = LEV, to = 1:length(LEV)))
-  ped$mother <-as.numeric( mapvalues(ped$mother, from = LEV, to = 1:length(LEV)))
+
+  LEV = unique(c((ped$ind),(ped$father),(ped$mother)))
+  ped$ind=as.numeric(factor(ped$ind,levels=LEV))
+  ped$father=as.numeric(factor(ped$father,levels=LEV))
+  ped$mother=as.numeric(factor(ped$mother,levels=LEV))
+  ped$father[ped$father == ped$father[1]]=0
+  ped$mother[ped$mother == ped$mother[1]]=0
   
   
-  w.without.knwon.parents  <-  which(ped$father==which(LEV == "0"))
-  ped$father[w.without.knwon.parents] <- 0
-  ped$mother[w.without.knwon.parents] <- 0
+  num_sex<- rep(2,length(ped$sex))
+  num_sex[ped$sex=='M'] <- 1
+  ped$sex = num_sex
   
-  
-  ped$sex <- as.numeric(mapvalues(ped$sex, from = c("M", "F"), to = c(1, 2)))
   
  
   geneal <- gen.genealogy(ped)

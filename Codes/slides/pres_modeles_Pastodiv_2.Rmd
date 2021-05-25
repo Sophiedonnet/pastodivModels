@@ -99,8 +99,22 @@ param = lapply(1:n.herds,function(i) param.default)
 
 voir nouveau code
 
-## Simulation des descendances de troupeaux
+## Autre nouveauté
+
+On peut suivre la consanguinité au cours du temps. 
+
+![One herd](alongtime_oneherd.png){#id .class width=50% height=50%}
+
+## Plusieurs troupeaux connectés: on suit la moyenne au cours du temps
 
 
-Voir démo R. 
+![Several herds](alongtime_meantenherds.png){#id .class width=50% height=50%}
+
+## Que faire après
+
+  - Choisir des scénarios typiques. 
+  - Imaginer des conditions
+  - Fixer le plus de paramètres possibles et faire varier
+  - Regarder d'autres indices (-> en cours avec l'aide de généticiens)
+  - Nous : on s'occupe des simulations (=calibrer le nombre de fois où répéter l'expérience pour avoir un signal, choisir les outils de comparaisons)
 
