@@ -30,15 +30,16 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
   
   #####################
   
-  
   ################### initialisation   = génération 0 or continue from LHerds given
   if (is.null(LHerds)){
     LHerds <- module.initialize(param.allHerds)
     gen <-  0
-  }else{
+    }else{
     gen <- max(as.numeric(unique(str_split_fixed(LHerds[[1]]$ind,"-",3)[,1]))) 
+    n.generations <- gen + n.generations
   }
   
+  herds_size <- matrix(compute.herds.size(LHerds),nrow = 1)
   if(computeInbreeding){
     inBreeding <- data.frame(matrix(ncol = 3, nrow = 0))
     colnames(inBreeding) <- c("herd","inBreed", "gen")
@@ -74,14 +75,18 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     resultsReplaceRam  <-  module.replace.interHerd(LHerds,Lnewborns.togive ,ExchangeNetwork = ram.for.replace.Network,param.allHerds,sex = 'M')
     LHerds <- resultsReplaceRam$LHerds
     
-    
+
+    #------------- size of herds 
+    herds_size <- rbind(herds_size,compute.herds.size(LHerds))
+    # ----- inBreeding                    
+                        
    if(computeInbreeding){
-       inBreeding_gen <- computeInbreedingFunction(LHerds)
+       inBreeding_gen <- compute.inbreeding(LHerds)
        inBreeding_gen$gen <- gen
        inBreeding <- rbind(inBreeding, inBreeding_gen)
      }
   }
-  res = list(LHerds = LHerds)
+  res = list(LHerds = LHerds,herds_size = herds_size)
   if (computeInbreeding){res$inBreeding = inBreeding}
   return(res)
 }

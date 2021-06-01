@@ -1,7 +1,7 @@
 library(plyr)
 library(tidyverse)
 
-####################################################################
+######### Initialize one herd  ########################
 module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
 ####################################################################
 # num.herd num to identify the herd
@@ -18,7 +18,7 @@ module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
                                  sample(param$age.min.ewe:(param$career.ewe-1),replace=T,param$n.ewe)))
   return(pop.table)
 }
-####################################################################
+######### Initialize all herds ########################
 module.initialize <- function(param.allHerds, seed = NULL){
 ####################################################################
   n.herds <- length(param.allHerds)
@@ -43,15 +43,11 @@ module.aging = function(LHerds,param.allHerds){
 }
 
 
-
-
-####################################################################
-# reproduction from mothers and fathers
-####################################################################
+####### Reproduction one herd #############################
 module.reproduction.oneHerd = function(mothers,fathers,num.gen,param)
-{
+########################################################
+  {
   
-  ########################################################
   num.herd <- mothers$herd[which(mothers$herd != -1)[1]]
   ######################################################## 
   n.mothers <- nrow(mothers)             # nbre de ewe able to do babies
@@ -77,18 +73,19 @@ module.reproduction.oneHerd = function(mothers,fathers,num.gen,param)
   return(newborn.table)
 }
 
+####### Reproduction all herd #############################
 module.reproduction <- function(Lmothers, Lfathers,num.gen,param.allHerds){
-  
+########################################################
+
   n.herds <- length(param.allHerds)
   LnewBorns <- lapply(1:n.herds,function(i){module.reproduction.oneHerd(mothers = Lmothers[[i]],fathers = Lfathers[[i]],num.gen,param = param.allHerds[[i]])})
   return(LnewBorns)
 }
 
-########################################################
-#################### select fathers in each Herd
-########################################################
+
+#################### select parents in each Herd #########
 module.select.parents <- function(LHerds, param.allHerds,sex){
-  
+########################################################
   n.herds <- length(param.allHerds)
   Lparents <- lapply(1:n.herds,function(i){
     L.i <- LHerds[[i]]
@@ -101,11 +98,9 @@ module.select.parents <- function(LHerds, param.allHerds,sex){
   return(Lparents)
 }
 
-########################################################
-#################### Exhange fathers
-########################################################
+#################### Exhange fathers ##############
 module.exchange.ram <- function(Lfathers,ram.for.repro.Network){
-  
+########################################################  
     n.herds <- length(Lfathers)
     newFathers <- Lfathers
     for (i in 1:n.herds){
@@ -116,15 +111,13 @@ module.exchange.ram <- function(Lfathers,ram.for.repro.Network){
     }
     Lfathers <- newFathers
     return(Lfathers)
-  
-    #where.fathers <- module.exchange.ram(ram.for.repro.Network,n.herds)
-    #Lfathers<- lapply(1:n.herds,function(i){do.call("rbind",Lfathers[where.fathers[[i]]])})
 }
 
 
 
+#################### module.replace.interHerd  #################" 
 module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,param.allHerds,sex){
-  
+########################################################  
   
   # LHerds : composition of all the herds
   # Lnewborns.togive : list of all newborn that are available to be given in all the herds
@@ -147,11 +140,13 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
     w.TooOld.i <- which((pop.table.i$herd != -1) & (pop.table.i$sex == sex) & (pop.table.i$age >= param.i$career.ram))
     n.TooOld.i <- length(w.TooOld.i)
     n.Lacking.i <-  size.i- sum((pop.table.i$herd != -1) & (pop.table.i$sex == sex))
-    
-    if (n.TooOld.i > 0){
-      pop.table.i$herd[w.TooOld.i]<- -1
+    if(n.Lacking.i < 0){browser()}
+    print(n.Lacking.i)
+    if ((n.TooOld.i > 0) | (n.Lacking.i>0)){
       
-      #### chose donnor using ram.network. ram.network may be weigthed 
+      if (length(n.TooOld.i) >0) {pop.table.i$herd[w.TooOld.i]<- 1}
+      
+      #### chose donnor using ExchangeNetwork. Exchange.network may be weigthed 
       prob.i <- ExchangeNetwork[i, ]
       prob.i <- prob.i/sum(prob.i)
       donnor.i <-sample(1:n.herds,1,prob = prob.i)
@@ -175,101 +170,25 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
 }
 
 
-# ####################################################################
-# # replacement intra troupeau
-# ####################################################################
-# module.replaceEwe.intraHerd = function(pop.table,newborn.table,param=list()){
-#   
-# 
-#   w.F <- which(newborn.table$sex == 'F')
-#   w.TooOld <- which(pop.table$herd != -1 & pop.table$sex == 'F' & pop.table$age >= param$career.ewe)
-#   n.TooOld <- length(w.TooOld)
-#   n.Lacking <- param$n.ewe - sum((pop.table$herd != -1) & (pop.table$sex == 'F'))
-#   newborn.togive <- newborn.table
-#   if (n.TooOld > 0){
-#     pop.table$herd[w.TooOld]<- -1
-#     if (length(w.F)>0){
-#           u <- sample(1:length(w.F),min(n.TooOld + n.Lacking,length(w.F)),replace=FALSE)
-#           pop.table <- rbind(pop.table,newborn.table[w.F[u],])
-#           newborn.togive <- newborn.togive[-w.F[u],]
-#     }
-#   }
-#    
-#   
-#   res <- list(pop.table = pop.table,newborn.togive  = newborn.togive)
-#   return(res)
-# }
-####################################################################
-# replacement of ram inter herds
-####################################################################
-# module.replaceRam.interHerd = function(LHerds,Lnewborns.togive ,ram.Network,param.allHerds){
-# 
-#   
-#   # LHerds : composition of all the herds
-#   # Lnewborns.togive : list of all newborn that are available to be given in all the herds
-#   # ram.Network : network of exchanges of ram
-#   # param.allHerds : parameter inside all the herds
-# 
-#   n.herds <- length(LHerds)
-#     for (i in 1:n.herds){
-#   
-#     pop.table.i <- LHerds[[i]]
-#     param.i <- param.allHerds[[i]]
-#     #########################"" test
-#     w.R.TooOld <- which((pop.table.i$herd != -1) & (pop.table.i$sex=='M') & (pop.table.i$age >= param.i$career.ram))
-#     n.R.TooOld <- length(w.R.TooOld)
-#     if (n.R.TooOld > 0){
-#       pop.table.i$herd[w.R.TooOld]<- -1
-#     
-#       #### chose donnor using ram.network. ram.network may be weigthed 
-#       p.i.r <- ram.Network[i, ]
-#       p.i.r <- p.i.r/sum(p.i.r)
-#       donnor.i <-sample(1:n.herds,1,prob = p.i.r)
-#       
-#       #### select young rams
-#       L.i <- Lnewborns.togive[[donnor.i]]
-#       w.i <- which(L.i$sex == 'M')
-#       
-#       ### replace too old rams and update LHerds and newborns to give
-#       if (length(w.i) > 0){
-#         u <- sample(1:length(w.i),min(length(w.i),n.R.TooOld),replace=FALSE)
-#         L.i.given <- L.i[w.i[u],]
-#         Lnewborns.togive[[donnor.i]] <- L.i[-w.i[u],] 
-#         L.i.given$herd <- i
-#         pop.table.i <- rbind(pop.table.i,L.i.given)
-#         LHerds[[i]] <- pop.table.i
-#       }
-#     }
-#     }
-#     return(res = list(LHerds = LHerds, Lnewborns.togive = Lnewborns.togive))
-# }
 
 
+
+############# module loose part of herds
+module.lose <- function(pop.table,loseProportion = 0.5){
 ####################################################################
-# choose rams for each herd
-####################################################################  
-choose.Ram.reproduction <- function(network,n,mode = "intra") 
-{
-  switch(mode,
-         intra = {return(as.list(1:n))},
-         melange = {}
-  )
+  
+  if ((loseProportion > 1) |  (loseProportion < 0)){stop("loseProportion must be between 0 and 1")}
+  w_inHerd <- which(pop.table$herd != -1)
+  n_Dead <- floor(loseProportion * length(w_inHerd))
+  w_Dead <- sample(w_inHerd,n_Dead,replace=FALSE)
+  pop.table$herd[w_Dead] = -1
+  return(pop.table)
 }
 
 
-choose.Ram.replace <- function(network,n,mode = "intra") 
-{
-  switch(mode,
-         intra = {return(as.list(1:n))},
-         melange = {}
-  )
-}
-
-
+################ compute.Inbreeding.Function ###################
+compute.inbreeding = function(LHerds){
 ####################################################################
-# choose rams for each herd
-####################################################################
-computeInbreedingFunction = function(LHerds){
   
   n.herds <- length(LHerds)
   size.herds <- sapply(1:n.herds,function(i){nrow(LHerds[[i]])})
@@ -303,6 +222,8 @@ computeInbreedingFunction = function(LHerds){
   return(U)
 }
 
-
-
-
+################ compute.Inbreeding.Function ###################
+compute.herds.size = function(LHerds){
+####################################################################
+  return(vapply(LHerds,function(u){sum(u$herd!= - 1)},1))
+}

@@ -11,8 +11,8 @@ n.generations <- 50 # Nb de générations
 
 
 # Parameters 
-param.default <- list(n.ram = 5,
-                      n.ewe = 80,
+param.default <- list(n.ram = 2,
+                      n.ewe = 40,
                       career.ram = 8,
                       career.ewe = 8,
                       age.min.ram = 0,
@@ -37,21 +37,24 @@ plot(graph_from_adjacency_matrix(ram.Network, mode = c("directed")))
 herds.Network = list(ewe.for.replace= NULL,ram.for.replace = ram.Network,ram.for.repro = ram.Network)
 
 
-# Simulation 
+############ First simulation  
 seed = sample(1:100,1)
 set.seed(seed)
 res <- Simulate.herds(n.herds,n.generations,param.allHerds=param,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = TRUE)
 LHerds <- res$LHerds
 
+size.herds <- res$herds_size
 # InBreeding  along time
 inBreedingTime <- res$inBreeding
 inBreedingTime$herd <- as.factor(inBreedingTime$herd)
 inBreedingTime$gen <- as.factor(inBreedingTime$gen)
 ggplot(inBreedingTime,aes(col=gen,y=inBreed,x=gen)) + geom_boxplot() + ggtitle('One herd') +  theme(legend.position='none')
 
-ggsave("slides/alongtime_oneherd.png")
-
- 
+############ accident
+LHerds[[1]] <- module.lose(LHerds[[1]],loseProportion = 0.5)
+res2 <- Simulate.herds(n.herds,100,param.allHerds=param,herds.Network = herds.Network,LHerds=LHerds,computeInbreeding  = TRUE)
+size.herds <- res2$herds_size
+plot(size.herds) 
 
 
 #######################################################################"
