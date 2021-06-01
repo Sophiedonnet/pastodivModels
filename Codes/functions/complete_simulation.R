@@ -40,6 +40,7 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
   }
   
   herds_size <- matrix(compute.herds.size(LHerds),nrow = 1)
+  print(herds_size)
   if(computeInbreeding){
     inBreeding <- data.frame(matrix(ncol = 3, nrow = 0))
     colnames(inBreeding) <- c("herd","inBreed", "gen")
@@ -47,7 +48,7 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
   ###################  GENERATIONS
   while(gen < n.generations){ 
     gen <- gen + 1
-    
+    print(gen)
     #-------------------  tout le monde prend 1 an
     LHerds <- module.aging(LHerds,param.allHerds)
     
@@ -71,11 +72,11 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     LHerds <- resultsReplaceEwe$LHerds
     Lnewborns.togive <- resultsReplaceEwe$Lnewborns.togive
     
+   
     #--------- replace ram inter Herds
     resultsReplaceRam  <-  module.replace.interHerd(LHerds,Lnewborns.togive ,ExchangeNetwork = ram.for.replace.Network,param.allHerds,sex = 'M')
     LHerds <- resultsReplaceRam$LHerds
     
-
     #------------- size of herds 
     herds_size <- rbind(herds_size,compute.herds.size(LHerds))
     # ----- inBreeding                    

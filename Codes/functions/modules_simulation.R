@@ -125,7 +125,8 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
   # param.allHerds : parameter inside all the herds
   
   n.herds <- length(LHerds)
-  for (i in 1:n.herds){
+  order_ex <- sample(1:n.herds,n.herds,replace=FALSE)
+  for (i in order_ex){
     
     pop.table.i <- LHerds[[i]]
     param.i <- param.allHerds[[i]]
@@ -139,12 +140,12 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
     
     w.TooOld.i <- which((pop.table.i$herd != -1) & (pop.table.i$sex == sex) & (pop.table.i$age >= param.i$career.ram))
     n.TooOld.i <- length(w.TooOld.i)
-    n.Lacking.i <-  size.i- sum((pop.table.i$herd != -1) & (pop.table.i$sex == sex))
-    if(n.Lacking.i < 0){browser()}
-    print(n.Lacking.i)
-    if ((n.TooOld.i > 0) | (n.Lacking.i>0)){
+    n.Lacking.i <-  size.i - sum((pop.table.i$herd != -1) & (pop.table.i$sex == sex)) - n.TooOld.i
+    #if(n.Lacking.i < 0){browser()}
+    
+    if ( n.Lacking.i > 0){
       
-      if (length(n.TooOld.i) >0) {pop.table.i$herd[w.TooOld.i]<- 1}
+      if (n.TooOld.i > 0) {pop.table.i$herd[w.TooOld.i]<- -1}
       
       #### chose donnor using ExchangeNetwork. Exchange.network may be weigthed 
       prob.i <- ExchangeNetwork[i, ]
@@ -157,7 +158,7 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
       
       ### replace too old rams and update LHerds and newborns to give
       if (length(w.i) > 0){
-        u <- sample(1:length(w.i),min(length(w.i),n.TooOld.i + n.Lacking.i),replace=FALSE)
+        u <- sample(1:length(w.i),min(length(w.i),n.Lacking.i),replace=FALSE)
         L.i.given <- L.i[w.i[u],]
         Lnewborns.togive[[donnor.i]] <- L.i[-w.i[u],] 
         L.i.given$herd <- i

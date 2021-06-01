@@ -34,9 +34,10 @@ ram.Network <- diag(1,n.herds)
 plot(graph_from_adjacency_matrix(ram.Network, mode = c("directed")))
 herds.Network = list(ewe.for.replace= NULL,ram.for.replace = ram.Network,ram.for.repro = ram.Network)
 
-
+param.allHerds=param
+LHerds = NULL
 # Simulation 
-res <- Simulate.herds(n.herds,n.generations,param.allHerds=param,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = FALSE)
+res <- Simulate.herds(n.herds,n.generations,param.allHerds,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = FALSE)
 LHerds <- res$LHerds
 # InBreeding 
 
