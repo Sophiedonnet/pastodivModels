@@ -140,7 +140,7 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
     
     w.TooOld.i <- which((pop.table.i$herd != -1) & (pop.table.i$sex == sex) & (pop.table.i$age >= param.i$career.ram))
     n.TooOld.i <- length(w.TooOld.i)
-    n.Lacking.i <-  size.i - sum((pop.table.i$herd != -1) & (pop.table.i$sex == sex)) - n.TooOld.i
+    n.Lacking.i <-  size.i - sum((pop.table.i$herd != -1) & (pop.table.i$sex == sex)) + n.TooOld.i
     #if(n.Lacking.i < 0){browser()}
     
     if ( n.Lacking.i > 0){
@@ -199,7 +199,9 @@ compute.inbreeding = function(LHerds){
   ped <- ped[!duplicated(ped$ind),]
   
 
-  LEV = unique(c((ped$ind),(ped$father),(ped$mother)))
+  code.no.parents <- as.character(ped$father[which(ped$father=='0')][1])
+  
+  LEV = unique(c(levels(ped$ind),levels(ped$father),levels(ped$mother)))
   ped$ind=as.numeric(factor(ped$ind,levels=LEV))
   ped$father=as.numeric(factor(ped$father,levels=LEV))
   ped$mother=as.numeric(factor(ped$mother,levels=LEV))

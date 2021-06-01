@@ -1,4 +1,5 @@
 library(GENLIB)
+library(tidyverse)
 ############################################# ESSAI
 
 Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Network = list(),LHerds=NULL,computeInbreeding = FALSE)
@@ -28,14 +29,18 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
   ram.for.replace.Network <- herds.Network$ram.for.replace
   ewe.for.replace.Network <- herds.Network$ewe.for.replace
   
+  if (sum(sapply(herds.Network,function(E){dim(E)}) != n.herds) > 0) {
+    stop('At least one network is not of the correct dimension')
+  }
+  
   #####################
   
   ################### initialisation   = génération 0 or continue from LHerds given
   if (is.null(LHerds)){
     LHerds <- module.initialize(param.allHerds)
-    gen <-  0
+    gen <- gen0 <- 0
     }else{
-    gen <- max(as.numeric(unique(str_split_fixed(LHerds[[1]]$ind,"-",3)[,1]))) 
+    gen <- gen0 <-  max(as.numeric(unique(str_split_fixed(LHerds[[1]]$ind,"-",3)[,1]))) 
     n.generations <- gen + n.generations
   }
   
@@ -85,8 +90,18 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
        inBreeding_gen <- compute.inbreeding(LHerds)
        inBreeding_gen$gen <- gen
        inBreeding <- rbind(inBreeding, inBreeding_gen)
-     }
+      }
   }
+  if(computeInbreeding){
+    inBreeding$herd <- as.factor(inBreeding$herd)
+  }
+  
+  
+  herds_size <- as.data.frame(herds_size)
+  colnames(herds_size) <- 1:n.herds
+  herds_size$gen <- gen0:gen
+  herds_size <- herds_size %>% gather(herd,size,  -c(gen)) 
+  herds_size$herd <- as.factor(herds_size$herd)
   res = list(LHerds = LHerds,herds_size = herds_size)
   if (computeInbreeding){res$inBreeding = inBreeding}
   return(res)

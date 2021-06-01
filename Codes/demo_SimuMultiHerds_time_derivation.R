@@ -50,11 +50,6 @@ inBreedingTime$herd <- as.factor(inBreedingTime$herd)
 inBreedingTime$gen <- as.factor(inBreedingTime$gen)
 ggplot(inBreedingTime,aes(col=gen,y=inBreed,x=gen)) + geom_boxplot() + ggtitle('One herd') +  theme(legend.position='none')
 
-############ accident
-LHerds[[1]] <- module.lose(LHerds[[1]],loseProportion = 0.5)
-res2 <- Simulate.herds(n.herds,100,param.allHerds=param,herds.Network = herds.Network,LHerds=LHerds,computeInbreeding  = TRUE)
-size.herds <- res2$herds_size
-plot(size.herds) 
 
 
 #######################################################################"

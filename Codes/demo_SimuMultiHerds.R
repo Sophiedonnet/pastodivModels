@@ -1,4 +1,4 @@
-
+rm(list=ls())
 source('functions/modules_simulation.R')
 source('functions/complete_simulation.R')
 library(igraph,ggplot2)
@@ -42,7 +42,7 @@ LHerds <- res$LHerds
 # InBreeding 
 
 
-inBreeding <- computeInbreedingFunction(LHerds)  
+inBreeding <- compute.inbreeding(LHerds)  
 inBreeding$herd <- as.factor(inBreeding$herd)
 
 ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
