@@ -2,7 +2,11 @@
 title: "Définition d'un scénario. Mode d'emploi"
 author: "Sophie et Pierre"
 date: "02/06/2021"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
+  urlcolor: red
+  linkcolor: red
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +21,7 @@ library(knitr)
 ![](genie.jpg){width=300px}
 </center>
 
-Nous avons préparé un google.form pour vous aider à définir votre scénario. Vous le trouverez à cette [adresse](https://forms.gle/RTF36fSzUB5ryzB58)
+Nous avons préparé un google.form pour vous aider à définir votre scénario. 
 
 Ce document vous fournira des détails sur  les différents paramètres à choisir. 
 
@@ -29,8 +33,9 @@ A partir de là, l'idée est de définir plusieurs scenarios permettant de répo
 
 ## **En pratique**
 
-Il vous faudra remplir UN google form par scénario. Ceci pourra être pénible si vous envisager plus de 5  scénarios ou si vous voulez changer juste un paramètre (un réseau d'échange par exemple ou une taille de troupeau).
-Dans ce cas, vous pouvez accéder aux réponses de votre googleform  sous forme de tableau excel [ici](https://docs.google.com/spreadsheets/d/188Sls7V_rV88Rlz9Pd2lA0ym15HIZL6_eLkvZl1Ddbc/edit?usp=sharing). Vous ne pourrez pas éditer ce fichier mais vous devrier pouvoir copier la ligne qui correspond à votre scenario, la copier pour la modifier autant de fois que vous voulez et nous  renvoyer un fichier excel.  
+Voici le lien  du  [google.form](https://forms.gle/RTF36fSzUB5ryzB58)
+Il vous faudra remplir **UN google form par scénario**. Ceci pourra être pénible si vous envisager plus de 5  scénarios ou si vous voulez changer juste un paramètre (un réseau d'échange par exemple ou une taille de troupeau).
+Dans ce cas, vous pouvez accéder aux réponses de votre googleform  sous forme de tableau excel [ici](https://docs.google.com/spreadsheets/d/188Sls7V_rV88Rlz9Pd2lA0ym15HIZL6_eLkvZl1Ddbc/edit?usp=sharing). Vous ne pourrez pas éditer ce fichier mais vous devriez pouvoir copier la ligne qui correspond à votre scenario, la copier pour la modifier autant de fois que vous voulez et nous  renvoyer un fichier excel du même format. **Merci de ne pas changer les noms des colonnes**.  
 
 
 
@@ -107,14 +112,14 @@ param.by.herd <- list(n.ram = 2,
 
 
 
-## **Echanges possibles**
+## **Echanges ou prêts possibles**
 
 Les différents échanges sont encodés dans des réseaux ou de façon équivalentes dans des matrices de taille `n.herds` x`n.herds`. 
 Les échanges entre troupeaux peuvent arriver à 3 niveaux : 
 
   - au moment du remplacement des mâles trop vieux :  `ram.for.replace` 
   - au moment du remplacement des femelles trop vieilles : `ewe.for.replace`
-  - au moment de la reproduction (les pères potentiels d'autres troupeaux sont amenés pour la reproduction et mélangés au troupeau) : `ram.for.repro`
+  - au moment de la reproduction : les pères potentiels d'autres troupeaux sont amenés pour la reproduction et mélangés au troupeau.  `ram.for.repro`
     
 
 
@@ -142,7 +147,7 @@ On peut simuler la perte partielle d'un ou plusieurs  troupeaux du réseau. Dans
 
 
 <center>
-Vous pouvez maintenant préparer vos  [scenarii](https://forms.gle/RTF36fSzUB5ryzB58)
+Vous pouvez maintenant préparer vos scnenarii  [à ce lien](https://forms.gle/RTF36fSzUB5ryzB58)
 </center>
 
 <center>
