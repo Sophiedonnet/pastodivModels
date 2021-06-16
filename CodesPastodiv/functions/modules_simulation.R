@@ -14,8 +14,10 @@ module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
                          father = "0",mother = "0",
                          herd=num.herd,
                          sex=c(rep("M",param$n.ram),rep("F",param$n.ewe)),
-                         age = c(sample(param$age.min.ram:(param$career.ram-1),replace = T,param$n.ram),
-                                 sample(param$age.min.ewe:(param$career.ewe-1),replace=T,param$n.ewe)))
+                         age = c(sample(param$age.min.ram:(param$age.max.repro.ram-1),replace = T,param$n.ram),
+                                 sample(param$age.min.ewe:(param$age.max.repro.ewe-1),replace=T,param$n.ewe)))
+  
+  pop.table$time.in.current.herd <- 0
   return(pop.table)
 }
 ######### Initialize all herds ########################
@@ -31,7 +33,9 @@ module.aging.oneHerd = function(pop.table,param){
 ####################################################################
   
   if(!is.data.frame(pop.table)){stop()}
-  pop.table$age <- pop.table$age  + 1
+  w <- which(pop.table$herd != -1)
+  pop.table$age[w] <- pop.table$age[w]  + 1
+  pop.table$time.in.current.herd[w] <- pop.table$time.in.current.herd[w] + 1
   return(pop.table)
 }
 ############ Vieillissement ###########################################
@@ -67,6 +71,7 @@ module.reproduction.oneHerd = function(mothers,fathers,num.gen,param)
     newborn.table$herd <- num.herd; 
     newborn.table$mother <- rep(mothers$ind,n.newborns.per.mother)
     newborn.table$father <- rep(sample(possible.father,size = n.mothers,replace = T),n.newborns.per.mother)
+    newborn.table$time.in.current.herd <- 0
   }else{
     newborn.table = NULL
   }
@@ -89,16 +94,20 @@ module.select.parents <- function(LHerds, param.allHerds,sex){
   n.herds <- length(param.allHerds)
   Lparents <- lapply(1:n.herds,function(i){
     L.i <- LHerds[[i]]
-    age.lim.i = switch(sex,
-        "M" =   param.allHerds[[i]]$age.repro.ram,
-        "F" = param.allHerds[[i]]$age.repro.ewe)
-    w.i <- which((L.i$herd != -1) & (L.i$sex == sex)&(L.i$age >=  age.lim.i))
+    age.min.repro.i = switch(sex,
+        "M" =   param.allHerds[[i]]$age.min.repro.ram,
+        "F" = param.allHerds[[i]]$age.min.repro.ewe)
+    time.in.herd.i = switch(sex,
+          "M" =   param.allHerds[[i]]$career.ram,
+          "F" = Inf)
+    
+    w.i <- which((L.i$herd != -1) & (L.i$sex == sex) & (L.i$age >=  age.min.repro.i) & (L.i$time.in.herd <= time.in.herd.i))
     return(L.i[w.i,])}
   )
   return(Lparents)
 }
 
-#################### Exhange fathers ##############
+#################### Exchange fathers ##############
 module.exchange.ram <- function(Lfathers,ram.for.repro.Network){
 ########################################################  
     n.herds <- length(Lfathers)
@@ -132,13 +141,13 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
     param.i <- param.allHerds[[i]]
     #########################"" test
     age.lim.i <- switch(sex,
-                       "M" = param.i$career.ram,
-                       "F" = param.i$career.ewe)
+                       "M" = param.i$age.max.repro.ram,
+                       "F" = param.i$age.max.repro.ewe)
     size.i <- switch(sex,
                        "M" = param.i$n.ram,
                        "F" = param.i$n.ewe)
     
-    w.TooOld.i <- which((pop.table.i$herd != -1) & (pop.table.i$sex == sex) & (pop.table.i$age >= param.i$career.ram))
+    w.TooOld.i <- which((pop.table.i$herd != -1) & (pop.table.i$sex == sex) & (pop.table.i$age >= param.i$age.max.repro.ram))
     n.TooOld.i <- length(w.TooOld.i)
     n.Lacking.i <-  size.i - sum((pop.table.i$herd != -1) & (pop.table.i$sex == sex)) + n.TooOld.i
     #if(n.Lacking.i < 0){browser()}
@@ -162,6 +171,7 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
         L.i.given <- L.i[w.i[u],]
         Lnewborns.togive[[donnor.i]] <- L.i[-w.i[u],] 
         L.i.given$herd <- i
+        L.i.given$time.in.herd <- 0
         pop.table.i <- rbind(pop.table.i,L.i.given)
         LHerds[[i]] <- pop.table.i
       }

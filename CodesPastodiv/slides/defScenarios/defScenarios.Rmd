@@ -49,16 +49,16 @@ Afin de simuler des scenarios d'échanges et leur influence sur l'hétérogéné
 
 
   - **Carrière de reproduction**
-      * `career.ram` et `career.ewe`  : âge maximal de reproduction pour chaque sexe
-      * `age.repro.ram` et `age.repro.ewe` : aĝe minimal de reproduction pour chaque sexe
+      * `age.max.repro.ram` et `age.max.repro.ewe`  : âge maximal de reproduction pour chaque sexe
+      * `age.min.repro.ram` et `age.min.repro.ewe` : aĝe minimal de reproduction pour chaque sexe
       
 
   
 ```{r}
-career.ram = 8
-career.ewe = 8 
-age.repro.ewe = 3
-age.repro.ram  = 1
+age.max.repro.ram = 8
+age.max.repro.ewe = 8 
+age.min.repro.ewe = 3
+age.min.repro.ram  = 1
 ``` 
   
 <center>

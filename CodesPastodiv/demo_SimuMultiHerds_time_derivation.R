@@ -13,12 +13,12 @@ n.generations <- 50 # Nb de générations
 # Parameters 
 param.default <- list(n.ram = 2,
                       n.ewe = 40,
-                      career.ram = 8,
-                      career.ewe = 8,
+                      age.max.repro.ram = 8,
+                      age.max.repro.ewe = 8,
                       age.min.ram = 0,
                       age.min.ewe = 0,
-                      age.repro.ewe = 3,
-                      age.repro.ram = 1)
+                      age.min.repro.ewe = 3,
+                      age.min.repro.ram = 1)
 param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
 names(param.default$rate.repro) = c('nb.lambs','probability')
 

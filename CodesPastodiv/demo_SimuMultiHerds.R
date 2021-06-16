@@ -13,12 +13,12 @@ n.generations <- 50 # Nb de générations
 # Parameters 
 param.default <- list(n.ram = 3,
                       n.ewe = 40,
-                      career.ram = 8,
-                      career.ewe = 8,
+                      age.max.repro.ram = 8,
+                      age.max.repro.ewe = 8,
                       age.min.ram = 0,
                       age.min.ewe = 0,
-                      age.repro.ewe = 3,
-                      age.repro.ram = 1)
+                      age.min.repro.ewe = 3,
+                      age.min.repro.ram = 1)
 param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
 names(param.default$rate.repro) = c('nb.lambs','probability')
 param= lapply(1:n.herds,function(i) param.default) # here same parameters for all the Herds. 
@@ -64,7 +64,7 @@ plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")))
 res <- Simulate.herds(n.herds,n.generations,param.allHerds = param,herds.Network = herds.Network,LHerds = NULL)
 LHerds <- res$LHerds
 # InBreeding 
-inBreeding <- computeInbreedingFunction(LHerds)  
+inBreeding <- compute.inbreeding(LHerds)  
 inBreeding$herd <- as.factor(inBreeding$herd)
 
 ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
