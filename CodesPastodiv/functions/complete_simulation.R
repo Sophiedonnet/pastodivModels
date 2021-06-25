@@ -54,6 +54,8 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
   while(gen < n.generations){ 
     gen <- gen + 1
     print(gen)
+    
+   
     #-------------------  tout le monde prend 1 an
     LHerds <- module.aging(LHerds,param.allHerds)
     
@@ -66,21 +68,32 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     
     #--- exchange fathers
     
-    Lfathers <- module.exchange.ram(Lfathers,ram.for.repro.Network)
+    #Lfathers <- module.exchange.ram(Lfathers,ram.for.repro.Network)
    
     #---------- reproduction
     
     Lnewborns <- module.reproduction(Lmothers,Lfathers,num.gen = gen,param.allHerds)
     
-    #---------- replace old ewe by newborns
-    resultsReplaceEwe  <-  module.replace.interHerd(LHerds,Lnewborns ,ExchangeNetwork = ewe.for.replace.Network,param.allHerds,sex = 'F')
-    LHerds <- resultsReplaceEwe$LHerds
-    Lnewborns.togive <- resultsReplaceEwe$Lnewborns.togive
+    #-------------find rams that stayed enough in an herd 
+    selectRams <- module.select.rams.togive(LHerds,param.allHerds = param.allHerds)
+    Lramstogive <- selectRams$L.ramtogive
+    LHerds <- selectRams$LHerds
     
-   
-    #--------- replace ram inter Herds
-    resultsReplaceRam  <-  module.replace.interHerd(LHerds,Lnewborns.togive ,ExchangeNetwork = ram.for.replace.Network,param.allHerds,sex = 'M')
+    #--------- replace ram inter Herds (first take the old ones that need to circulate then take babies)
+    resultsReplaceRam  <-  module.replace.interHerd(LHerds,Lramstogive ,ExchangeNetwork = ram.for.replace.Network,param.allHerds,sex = 'M')
     LHerds <- resultsReplaceRam$LHerds
+    
+    resultsReplaceRam  <-  module.replace.interHerd(LHerds,Lnewborns ,ExchangeNetwork = ram.for.replace.Network,param.allHerds,sex = 'M')
+    LHerds <- resultsReplaceRam$LHerds
+    Lnewborns.togive <-resultsReplaceRam$Lnewborns.togive
+    
+    
+    #---------- replace old ewe by newborns
+    
+    resultsReplaceEwe  <-  module.replace.interHerd(LHerds,Lnewborns.togive ,ExchangeNetwork = ewe.for.replace.Network,param.allHerds,sex = 'F')
+    LHerds <- resultsReplaceEwe$LHerds
+   
+    
     
     #------------- size of herds 
     herds_size <- rbind(herds_size,compute.herds.size(LHerds))

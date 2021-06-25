@@ -97,11 +97,8 @@ module.select.parents <- function(LHerds, param.allHerds,sex){
     age.min.repro.i = switch(sex,
         "M" =   param.allHerds[[i]]$age.min.repro.ram,
         "F" = param.allHerds[[i]]$age.min.repro.ewe)
-    time.in.herd.i = switch(sex,
-          "M" =   param.allHerds[[i]]$career.ram,
-          "F" = Inf)
-    
-    w.i <- which((L.i$herd != -1) & (L.i$sex == sex) & (L.i$age >=  age.min.repro.i) & (L.i$time.in.herd <= time.in.herd.i))
+   
+    w.i <- which((L.i$herd != -1) & (L.i$sex == sex) & (L.i$age >=  age.min.repro.i))
     return(L.i[w.i,])}
   )
   return(Lparents)
@@ -133,7 +130,10 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
   # ram.Network : network of exchanges of ram
   # param.allHerds : parameter inside all the herds
   
+  
+  #if(sex=='F'){browser()}
   n.herds <- length(LHerds)
+  
   order_ex <- sample(1:n.herds,n.herds,replace=FALSE)
   for (i in order_ex){
     
@@ -171,7 +171,7 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
         L.i.given <- L.i[w.i[u],]
         Lnewborns.togive[[donnor.i]] <- L.i[-w.i[u],] 
         L.i.given$herd <- i
-        L.i.given$time.in.herd <- 0
+        L.i.given$time.in.current.herd <- 0
         pop.table.i <- rbind(pop.table.i,L.i.given)
         LHerds[[i]] <- pop.table.i
       }
@@ -180,8 +180,30 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
   return(res = list(LHerds = LHerds, Lnewborns.togive = Lnewborns.togive))
 }
 
-
-
+#################### select.rams.togive  #################" 
+module.select.rams.togive <- function(LHerds,param.allHerds){
+######################################################"
+  n.herds <- length(LHerds) 
+  L.ramtogive <- vector(mode = "list", length = n.herds) 
+ 
+ 
+  for (i in 1:n.herds){
+    L.i <- LHerds[[i]]
+    param.i  <- param.allHerds[[i]]
+    w.i <- which((L.i$herd != -1) 
+                 & (L.i$sex == 'M') 
+                 & (L.i$time.in.herd > param.i$career.ram)
+                 & (L.i$age < param.i$age.max.repro.ram)
+    )
+    if(length(w.i) >0){
+      L.ramtogive[[i]] <- L.i[w.i, ]
+      LHerds[[i]]$herd[w.i] <- -1 
+    }
+  }
+  res <- list(L.ramtogive = L.ramtogive,LHerds = LHerds)
+  return(res)
+    
+}
 
 
 ############# module loose part of herds

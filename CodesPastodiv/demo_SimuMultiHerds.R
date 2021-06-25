@@ -11,14 +11,15 @@ n.generations <- 50 # Nb de générations
 
 
 # Parameters 
-param.default <- list(n.ram = 3,
-                      n.ewe = 40,
+param.default <- list(n.ram = 4,
+                      n.ewe = 80,
                       age.max.repro.ram = 8,
                       age.max.repro.ewe = 8,
                       age.min.ram = 0,
                       age.min.ewe = 0,
                       age.min.repro.ewe = 3,
-                      age.min.repro.ram = 1)
+                      age.min.repro.ram = 1,
+                      career.ram  = 2)
 param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
 names(param.default$rate.repro) = c('nb.lambs','probability')
 param= lapply(1:n.herds,function(i) param.default) # here same parameters for all the Herds. 
