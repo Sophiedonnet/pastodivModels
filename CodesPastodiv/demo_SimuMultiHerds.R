@@ -6,22 +6,21 @@ library(tidyverse)
 ######  General parameters ################# 
 
  
-n.herds  <- 10 #Nb de troupeaux
+n.herds  <- 10#Nb de troupeaux
 n.generations <- 50 # Nb de générations
 
 
 # Parameters 
-param.default <- list(n.ram = 4,
-                      n.ewe = 80,
+param.default <- list(n.ram = 2,
+                      n.ewe = 40,
                       age.max.repro.ram = 8,
                       age.max.repro.ewe = 8,
                       age.min.repro.ewe = 3,
                       age.min.repro.ram = 1,
-                      career.ram  = 2)
+                      career.ram  = 8)
 param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
 names(param.default$rate.repro) = c('nb.lambs','probability')
-param= lapply(1:n.herds,function(i) param.default) # here same parameters for all the Herds. 
-
+param = lapply(1:n.herds,function(i) param.default) # here same parameters for all the Herds. 
 
 ####################################################################""
 #################" SIMULATION 1 : independent herds : no exchange
@@ -33,20 +32,18 @@ ram.Network <- diag(1,n.herds)
 plot(graph_from_adjacency_matrix(ram.Network, mode = c("directed")))
 herds.Network = list(ewe.for.replace= NULL,ram.for.replace = ram.Network,ram.for.repro = ram.Network)
 
-param.allHerds=param
-LHerds = NULL
+
 # Simulation 
+myparam <- param
+myparam[[1]]$career.ram = 3
+param.allHerds <- myparam
 res <- Simulate.herds(n.herds,n.generations,param.allHerds,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = FALSE)
 LHerds <- res$LHerds
-# InBreeding 
-
 
 inBreeding <- compute.inbreeding(LHerds)  
-inBreeding$herd <- as.factor(inBreeding$herd)
-
 ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
 ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() + ggtitle('independant ')
- 
+
 
 #######################################################################"
 #################" SIMULATION 2 : Hub : one people gives to all the others
@@ -55,7 +52,7 @@ ram.Network <- diag(0,n.herds)
 ram.Network[,1] <- 1
 ram.Network[n.herds,1] <- 0
 ram.Network[n.herds,n.herds] <- 1
-herds.Network = list(ewe.for.replace= NULL,ram.for.replace = ram.Network,ram.for.repro = ram.Network)
+herds.Network = list(ewe.for.replace= NULL,ram.for.replace = ram.Network)
 plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")))
 
 
@@ -64,7 +61,7 @@ res <- Simulate.herds(n.herds,n.generations,param.allHerds = param,herds.Network
 LHerds <- res$LHerds
 # InBreeding 
 inBreeding <- compute.inbreeding(LHerds)  
-inBreeding$herd <- as.factor(inBreeding$herd)
+
 
 ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
 ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() +   ggtitle('Hub network')
@@ -81,13 +78,12 @@ while(test){
   ram.Network[1,1] <- 1
   test  = sum((rowSums(ram.Network)==0)) >0
 }
-plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")))
-herds.Network = list(ram.for.replace = ram.Network,ram.for.repro = ram.Network, ewe.for.replace =NULL)
+plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")),main = "Ram")
+herds.Network = list(ram.for.replace = ram.Network, ewe.for.replace =NULL)
 
 res  <- Simulate.herds(n.herds ,n.generations,param.allHerds = param,herds.Network)
 LHerds <- res$LHerds
-inBreeding <- computeInbreedingFunction(LHerds)  
-inBreeding$herd <- as.factor(inBreeding$herd)
+inBreeding <- compute.inbreeding(LHerds)  
 ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot()  + ggtitle('Random network')
 
 
@@ -102,14 +98,13 @@ for (i in 2:n.herds){
 ram.Network[1,n.herds-1] <- 1
 ram.Network[n.herds,n.herds-1] <- 0
 ram.Network[n.herds,n.herds] <- 1
-herds.Network = list(ram.for.replace = ram.Network,ram.for.repro = diag(n.herds)+ram.Network, ewe.for.replace =NULL)
+herds.Network = list(ram.for.repro = diag(n.herds)+ram.Network, ewe.for.replace =NULL)
 plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")))
 
 
 res <- Simulate.herds(n.herds ,n.generations,param.allHerds = param,herds.Network)
 LHerds <- res$LHerds
-inBreeding <- computeInbreedingFunction(LHerds)  
-inBreeding$herd <- as.factor(inBreeding$herd)
+inBreeding <- compute.inbreeding(LHerds)  
 ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot()+ ggtitle('Chain network')
 
 

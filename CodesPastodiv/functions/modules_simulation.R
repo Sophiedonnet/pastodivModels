@@ -49,19 +49,36 @@ module.aging = function(LHerds,param.allHerds){
   return(LHerds)
 }
 
+#################### select parents in each Herd #########
+module.select.parents <- function(LHerds, param.allHerds,sex){
+###########################################################
+  n.herds <- length(param.allHerds)
+  Lparent <- lapply(1:n.herds,function(i){
+    L.i <- LHerds[[i]]
+    age.min.repro.i = switch(sex,
+                             "M" =   param.allHerds[[i]]$age.min.repro.ram,
+                             "F" = param.allHerds[[i]]$age.min.repro.ewe)
+    age.max.repro.i = switch(sex,
+                             "M" =   param.allHerds[[i]]$age.max.repro.ram,
+                             "F" = param.allHerds[[i]]$age.max.repro.ewe)
+    
+    w.i <- which((L.i$herd != -1) & (L.i$sex == sex) & (L.i$age >=  age.min.repro.i) & (L.i$age <=  age.max.repro.i))
+    return(L.i[w.i,])}
+  )
+  return(Lparent)
+}
+
 
 ####### Reproduction one herd #############################
 module.reproduction.oneHerd = function(mothers,fathers,num.gen,param)
 ########################################################
   {
-  
   num.herd <- mothers$herd[which(mothers$herd != -1)[1]]
   ######################################################## 
   n.mothers <- nrow(mothers)             # nbre de ewe able to do babies
   possible.father <- fathers$ind
-  
-  if ((length(possible.father)>0) & (n.mothers > 0)){
-    
+  n.fathers <- nrow(fathers)
+  if ((n.fathers >0) & (n.mothers > 0)){
     n.newborns.per.mother <- sample(param$rate.repro[,1],n.mothers,replace = TRUE,prob  = param$rate.repro[,2]) # nb of newborns per ewe.
     n.newborns <- sum(n.newborns.per.mother)
     # creation table newborn
@@ -70,11 +87,12 @@ module.reproduction.oneHerd = function(mothers,fathers,num.gen,param)
     # fullfilling newborn.table
     newborn.table$ind <- paste(num.gen,num.herd,1:n.newborns,sep="-")
     newborn.table$age <- 0
+    newborn.table$time.in.current.herd <- 0
     newborn.table$sex <- sample(c("F","M"), size = n.newborns, replace = T)
     newborn.table$herd <- num.herd; 
     newborn.table$mother <- rep(mothers$ind,n.newborns.per.mother)
-    newborn.table$father <- rep(sample(possible.father,size = n.mothers,replace = T),n.newborns.per.mother)
-    newborn.table$time.in.current.herd <- 0
+    u <- sample(possible.father,size = n.mothers,replace = T)
+    newborn.table$father <- rep(u,n.newborns.per.mother)
   }else{
     newborn.table = NULL
   }
@@ -84,34 +102,16 @@ module.reproduction.oneHerd = function(mothers,fathers,num.gen,param)
 ####### Reproduction all herd #############################
 module.reproduction <- function(Lmothers, Lfathers,num.gen,param.allHerds){
 ########################################################
-
   n.herds <- length(param.allHerds)
   LnewBorns <- lapply(1:n.herds,function(i){module.reproduction.oneHerd(mothers = Lmothers[[i]],fathers = Lfathers[[i]],num.gen,param = param.allHerds[[i]])})
   return(LnewBorns)
 }
 
 
-#################### select parents in each Herd #########
-module.select.parents <- function(LHerds, param.allHerds,sex){
-########################################################
-  n.herds <- length(param.allHerds)
-  Lparents <- lapply(1:n.herds,function(i){
-    L.i <- LHerds[[i]]
-    age.min.repro.i = switch(sex,
-        "M" =   param.allHerds[[i]]$age.min.repro.ram,
-        "F" = param.allHerds[[i]]$age.min.repro.ewe)
-    max.time.in.herd.i = switch(sex,
-          "M" =   param.allHerds[[i]]$max.time.in.herd,
-          "F" = Inf)
-    
-    w.i <- which((L.i$herd != -1) & (L.i$sex == sex) & (L.i$age >=  age.min.repro.i) & (L.i$time.in.herd <= max.time.in.herd.i))
-    return(L.i[w.i,])}
-  )
-  return(Lparents)
-}
+
 
 #################### Exchange fathers ##############
-module.exchange.ram <- function(Lfathers,ram.for.repro.Network){
+module.exchange.ram.for.one.year <- function(Lfathers,ram.for.repro.Network){
 ########################################################  
     n.herds <- length(Lfathers)
     newFathers <- Lfathers
@@ -125,19 +125,47 @@ module.exchange.ram <- function(Lfathers,ram.for.repro.Network){
     return(Lfathers)
 }
 
+#################### select.rams.togive  #################" 
+module.select.rams.tomove <- function(LHerds,param.allHerds){
+######################################################"
+
+  n.herds <- length(LHerds) 
+  L.tomove <- vector(mode = "list", length = n.herds) 
+  
+  for (i in 1:n.herds){
+    pop.table.i <- LHerds[[i]]
+    param.i  <- param.allHerds[[i]]
+    career.ram.i <- param.i$career.ram
+    age.lim.i <- param.i$age.max.repro.ram
+    # the ones we give are in the herd,male, still able to reproduct but spent too much time in the current herd
+    
+    w.i <- which((pop.table.i$herd != -1) 
+                 & (pop.table.i$sex == 'M') 
+                 & (pop.table.i$age < age.lim.i) 
+                 & (pop.table.i$time.in.current.herd >= career.ram.i)
+    )
+    if(length(w.i) >0){
+      L.tomove[[i]] <- pop.table.i[w.i, ]
+      LHerds[[i]]$herd[w.i] <- -1 
+    }
+  }
+  res <- list(L.tomove = L.tomove,LHerds = LHerds)
+  return(res)
+  
+}
 
 
 #################### module.replace.interHerd  #################" 
-module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,param.allHerds,sex){
+module.replace.interHerd = function(LHerds,L.togive,ExchangeNetwork,param.allHerds,sex){
 ########################################################  
   
   # LHerds : composition of all the herds
-  # Lnewborns.togive : list of all newborn that are available to be given in all the herds
+  # L.togive : list of all animals that are available to be given in all the herds
   # ram.Network : network of exchanges of ram
   # param.allHerds : parameter inside all the herds
   
   
-  #if(sex=='F'){browser()}
+  
   n.herds <- length(LHerds)
   
   order_ex <- sample(1:n.herds,n.herds,replace=FALSE)
@@ -152,70 +180,50 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
     size.i <- switch(sex,
                        "M" = param.i$n.ram,
                        "F" = param.i$n.ewe)
-    max.time.in.herd.i <- switch(sex,
-                                 "M" = param.i$max.time.in.herd,
-                                 "F" = Inf)
+    career.ram.i <- switch(sex,
+                           "M" = param.i$career.ram,
+                           "F" = Inf)
+    
+    ### on va chercher les trop vieux
     w.TooOld.i <- which((pop.table.i$herd != -1) 
                         & (pop.table.i$sex == sex) 
                         & (pop.table.i$age >= age.lim.i)
-                        & (pop.table.i$time.in.herd >= max.time.in.herd.i ))
-    
+                        )
+
     n.TooOld.i <- length(w.TooOld.i)
+    ### prendre en compte aussi ceux qu'on a enlevé car passé trop de temps (ils sont déjà -1)
     n.Lacking.i <-  size.i - sum((pop.table.i$herd != -1) & (pop.table.i$sex == sex)) + n.TooOld.i
-    #if(n.Lacking.i < 0){browser()}
     
     if ( n.Lacking.i > 0){
       
       if (n.TooOld.i > 0) {pop.table.i$herd[w.TooOld.i]<- -1}
-      
       #### chose donnor using ExchangeNetwork. Exchange.network may be weigthed 
       prob.i <- ExchangeNetwork[i, ]
-      prob.i <- prob.i/sum(prob.i)
-      donnor.i <-sample(1:n.herds,1,prob = prob.i)
+      if (sum(prob.i) > 0){
+        prob.i <- prob.i/sum(prob.i)
+        donnor.i <-sample(1:n.herds,1,prob = prob.i)
       
-      #### select young rams
-      L.i <- Lnewborns.togive[[donnor.i]]
-      w.i <- which(L.i$sex == sex)
+        #### select young animals
+        L.i <- L.togive[[donnor.i]]
+        w.i <- which(L.i$sex == sex)
       
-      ### replace too old rams and update LHerds and newborns to give
-      if (length(w.i) > 0){
-        u <- sample(1:length(w.i),min(length(w.i),n.Lacking.i),replace=FALSE)
-        L.i.given <- L.i[w.i[u],]
-        Lnewborns.togive[[donnor.i]] <- L.i[-w.i[u],] 
-        L.i.given$herd <- i
-        L.i.given$time.in.herd <- 0
-        pop.table.i <- rbind(pop.table.i,L.i.given)
-        LHerds[[i]] <- pop.table.i
+        ### replace too old rams and update LHerds and newborns to give
+        if (length(w.i) > 0){
+          
+          u.i <- sample(w.i,min(length(w.i),n.Lacking.i),replace=FALSE)
+          L.i.given <- L.i[u.i,]
+          L.togive[[donnor.i]] <- L.i[-u.i,] 
+          L.i.given$herd <- i
+          L.i.given$time.in.current.herd <- 0
+          pop.table.i <- rbind(pop.table.i,L.i.given)
+          LHerds[[i]] <- pop.table.i
+        }
       }
     }
   }
-  return(res = list(LHerds = LHerds, Lnewborns.togive = Lnewborns.togive))
+  return(res = list(LHerds = LHerds, L.togive = L.togive))
 }
 
-#################### select.rams.togive  #################" 
-module.select.rams.togive <- function(LHerds,param.allHerds){
-######################################################"
-  n.herds <- length(LHerds) 
-  L.ramtogive <- vector(mode = "list", length = n.herds) 
- 
- 
-  for (i in 1:n.herds){
-    L.i <- LHerds[[i]]
-    param.i  <- param.allHerds[[i]]
-    w.i <- which((L.i$herd != -1) 
-                 & (L.i$sex == 'M') 
-                 & (L.i$time.in.herd > param.i$career.ram)
-                 & (L.i$age < param.i$age.max.repro.ram)
-    )
-    if(length(w.i) >0){
-      L.ramtogive[[i]] <- L.i[w.i, ]
-      LHerds[[i]]$herd[w.i] <- -1 
-    }
-  }
-  res <- list(L.ramtogive = L.ramtogive,LHerds = LHerds)
-  return(res)
-    
-}
 
 
 ############# module loose part of herds
@@ -241,31 +249,28 @@ compute.inbreeding = function(LHerds){
   ### construction de la généalogie
   ped <- do.call("rbind",LHerds)
   ped <- ped[!duplicated(ped$ind),]
+  if(!is.factor(ped$ind)){ped$ind <- as.factor(ped$ind)}
+  if(!is.factor(ped$father)){ped$father <- as.factor(ped$father)}
+  if(!is.factor(ped$mother)){ped$mother <- as.factor(ped$mother)}
   
-
-  code.no.parents <- as.character(ped$father[which(ped$father=='0')][1])
-  
+  wf0 <- which(ped$father=='0')
   LEV = unique(c(levels(ped$ind),levels(ped$father),levels(ped$mother)))
-  ped$ind=as.numeric(factor(ped$ind,levels=LEV))
-  ped$father=as.numeric(factor(ped$father,levels=LEV))
-  ped$mother=as.numeric(factor(ped$mother,levels=LEV))
-  ped$father[ped$father == ped$father[1]]=0
-  ped$mother[ped$mother == ped$mother[1]]=0
   
   
-  num_sex<- rep(2,length(ped$sex))
-  num_sex[ped$sex=='M'] <- 1
-  ped$sex = num_sex
+  ped2 <- ped
+  ped2$ind <- as.numeric(factor(ped$ind,levels=LEV))
+  ped2$father <- as.numeric(factor(ped$father,levels=LEV))
+  ped2$mother <- as.numeric(factor(ped$mother,levels=LEV))
   
+  ped2$father[wf0] <- ped2$mother[wf0]  <- 0 
+  ped2$sex  <- 2*(ped$sex=='F') + 1*(ped$sex=='M')
+  geneal <- gen.genealogy(ped2)
+  u <- which(ped2$herd!=-1)
+  inBreed <- gen.f(geneal,ped2$ind[u])
   
- 
-  geneal <- gen.genealogy(ped)
-  u <- which(ped$herd!=-1)
-  inBreed <- gen.f(geneal,u)
-  
-  U <- as.data.frame(cbind(ped$herd[u],inBreed))
+  U <- as.data.frame(cbind(ped2$herd[u],inBreed))
   names(U) <- c('herd','inBreed')
-  
+  U$herd <- as.factor(U$herd)
   return(U)
 }
 
