@@ -9,6 +9,9 @@ module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
 #----------------------------------------------
   if(!is.null(seed)){set.seed(seed)}
   
+  if(is.null(param$age.min.ram)){param$age.min.ram = 0}
+  if(is.null(param$age.min.ewe)){param$age.min.ewe = 0}
+  
   
   pop.table = data.frame(ind=paste("0",num.herd,1:(param$n.ewe+param$n.ram),sep="-"),
                          father = "0",mother = "0",
@@ -97,8 +100,11 @@ module.select.parents <- function(LHerds, param.allHerds,sex){
     age.min.repro.i = switch(sex,
         "M" =   param.allHerds[[i]]$age.min.repro.ram,
         "F" = param.allHerds[[i]]$age.min.repro.ewe)
-   
-    w.i <- which((L.i$herd != -1) & (L.i$sex == sex) & (L.i$age >=  age.min.repro.i))
+    max.time.in.herd.i = switch(sex,
+          "M" =   param.allHerds[[i]]$max.time.in.herd,
+          "F" = Inf)
+    
+    w.i <- which((L.i$herd != -1) & (L.i$sex == sex) & (L.i$age >=  age.min.repro.i) & (L.i$time.in.herd <= max.time.in.herd.i))
     return(L.i[w.i,])}
   )
   return(Lparents)
@@ -146,8 +152,14 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
     size.i <- switch(sex,
                        "M" = param.i$n.ram,
                        "F" = param.i$n.ewe)
+    max.time.in.herd.i <- switch(sex,
+                                 "M" = param.i$max.time.in.herd,
+                                 "F" = Inf)
+    w.TooOld.i <- which((pop.table.i$herd != -1) 
+                        & (pop.table.i$sex == sex) 
+                        & (pop.table.i$age >= age.lim.i)
+                        & (pop.table.i$time.in.herd >= max.time.in.herd.i ))
     
-    w.TooOld.i <- which((pop.table.i$herd != -1) & (pop.table.i$sex == sex) & (pop.table.i$age >= param.i$age.max.repro.ram))
     n.TooOld.i <- length(w.TooOld.i)
     n.Lacking.i <-  size.i - sum((pop.table.i$herd != -1) & (pop.table.i$sex == sex)) + n.TooOld.i
     #if(n.Lacking.i < 0){browser()}
@@ -171,7 +183,7 @@ module.replace.interHerd = function(LHerds,Lnewborns.togive,ExchangeNetwork,para
         L.i.given <- L.i[w.i[u],]
         Lnewborns.togive[[donnor.i]] <- L.i[-w.i[u],] 
         L.i.given$herd <- i
-        L.i.given$time.in.current.herd <- 0
+        L.i.given$time.in.herd <- 0
         pop.table.i <- rbind(pop.table.i,L.i.given)
         LHerds[[i]] <- pop.table.i
       }
