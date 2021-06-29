@@ -110,17 +110,26 @@ param.by.herd <- list(n.ram = 2,
 
 
 
+## **Circulation d'animaux**
 
+La circulation d'animaux peut avoir lieu à plusieurs niveaux : 
+      
+  * *Au moment du remplacement de betes trop agées* : les mâles ou les femelles trop vieilles sont remplacés par des petits nés dans l'année.  Soit les petits sont pris dans le troupeau (pas de circulation), soit ils sont obtenus auprès d'autres éleveurs parmi les "contacts" de l'éleveur en question. 
+      
+  * *Les mâles peuvent circuler de façon spécifique*. On peut décider de limiter le temps passé par un mâle dans un troupeau donné `param.by.herd$career.ram <- 2`. Dans ce cas, au bout de `career.ram` ans passés dans un troupeau, les mâles sont reproposés à d'autres éleveurs qui en ont besoin (mâle ayant atteint la limite d'âge ou de temps dans le troupeau). Si on ne veut pas avoir ce genre de circulation, il suffit de mettre `param.by.herd$career.ram = param.by.herd$age.max.repro.ram`. 
+      
 
-## **Echanges ou prêts possibles**
+Il faut donc définir trois réseaux d'échanges encodés dans des réseaux ou de façon équivalentes dans des matrices de taille `n.herds` x`n.herds`.  Les réseaux correspondant aux 3 échanges ci dessus sont nommés: 
 
-Les différents échanges sont encodés dans des réseaux ou de façon équivalentes dans des matrices de taille `n.herds` x`n.herds`. 
-Les échanges entre troupeaux peuvent arriver à 3 niveaux : 
+  - `ram.circulation`
 
-  - au moment du remplacement des mâles trop vieux :  `ram.for.replace` 
-  - au moment du remplacement des femelles trop vieilles : `ewe.for.replace`
-  - au moment de la reproduction : les pères potentiels d'autres troupeaux sont amenés pour la reproduction et mélangés au troupeau.  `ram.for.repro`
-    
+  - `ram.replace`
+
+  - `ewe.replace` 
+
+Les réseaux `ram.replace` et `ewe.replace` peuvent avoir des autoloops  i.e. les éleveurs peuvent remplacer les vieux par des jeunes nés dans le troupeau. Si sur une ligne $i$, l'individu $i$ a $n_i$ contacts alors chaque année on tire au hasard le troupeau qui fournira les bêtes nécéssaires parmi ces $n_i$. Les réseaux peuvent être pondérés. 
+La circulation des males a lieu entre des troupeaux différents, donc `ram.circulation` n'a pas d'autoloop.  
+ 
 
 
 **Parmi les choix possibles** *pour chaque réseau* : 
@@ -138,7 +147,8 @@ Les échanges entre troupeaux peuvent arriver à 3 niveaux :
 
 **Remarques** : 
 
-  - Mettre des échanges partout risque d'entraîne beaucoup de confusion. 
+  - Mettre des échanges partout risque d'entraîner beaucoup de confusion d'effets. **Préférer  un seul réseau de circulation**.
+  - La valeur par défaut d'un réseau est seulement des self-loop (pas d'échanges)
   
 
 ## **Accidents**

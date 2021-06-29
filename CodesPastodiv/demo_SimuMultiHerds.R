@@ -17,7 +17,7 @@ param.default <- list(n.ram = 2,
                       age.max.repro.ewe = 8,
                       age.min.repro.ewe = 3,
                       age.min.repro.ram = 1,
-                      career.ram  = 8)
+                      career.ram  = 3)
 param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
 names(param.default$rate.repro) = c('nb.lambs','probability')
 param = lapply(1:n.herds,function(i) param.default) # here same parameters for all the Herds. 
@@ -30,7 +30,7 @@ param = lapply(1:n.herds,function(i) param.default) # here same parameters for a
 
 ram.Network <- diag(1,n.herds)
 plot(graph_from_adjacency_matrix(ram.Network, mode = c("directed")))
-herds.Network = list(ewe.for.replace= NULL,ram.for.replace = ram.Network,ram.for.repro = ram.Network)
+herds.Network = list(ewe.replace= NULL,ram.replace = ram.Network,ram.circulation = NULL)
 
 
 # Simulation 
@@ -52,7 +52,7 @@ ram.Network <- diag(0,n.herds)
 ram.Network[,1] <- 1
 ram.Network[n.herds,1] <- 0
 ram.Network[n.herds,n.herds] <- 1
-herds.Network = list(ewe.for.replace= NULL,ram.for.replace = ram.Network)
+herds.Network = list(ewe.replace= NULL,ram.replace = ram.Network)
 plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")))
 
 
@@ -79,7 +79,7 @@ while(test){
   test  = sum((rowSums(ram.Network)==0)) >0
 }
 plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")),main = "Ram")
-herds.Network = list(ram.for.replace = ram.Network, ewe.for.replace =NULL)
+herds.Network = list(ram.replace = ram.Network, ewe.replace =NULL)
 
 res  <- Simulate.herds(n.herds ,n.generations,param.allHerds = param,herds.Network)
 LHerds <- res$LHerds
@@ -90,6 +90,16 @@ ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot()  + ggtitle('R
 
 #################" SIMULATION 4 :  chain
 
+param.default <- list(n.ram = 2,
+                      n.ewe = 40,
+                      age.max.repro.ram = 8,
+                      age.max.repro.ewe = 8,
+                      age.min.repro.ewe = 3,
+                      age.min.repro.ram = 1,
+                      career.ram  = 3)
+param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
+names(param.default$rate.repro) = c('nb.lambs','probability')
+param = lapply(1:n.herds,function(i) param.default) # here same parameters for all the Herds. 
 
 ram.Network <- diag(0,n.herds)
 for (i in 2:n.herds){
@@ -98,7 +108,7 @@ for (i in 2:n.herds){
 ram.Network[1,n.herds-1] <- 1
 ram.Network[n.herds,n.herds-1] <- 0
 ram.Network[n.herds,n.herds] <- 1
-herds.Network = list(ram.for.repro = diag(n.herds)+ram.Network, ewe.for.replace =NULL)
+herds.Network = list(ram.circulation = ram.Network, ewe.replace =NULL)
 plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")))
 
 

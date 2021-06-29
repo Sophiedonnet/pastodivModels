@@ -22,19 +22,29 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
   }
   
   ######################
-  if(is.null(herds.Network$ram.for.repro)){herds.Network$ram.for.repro = diag(n.herds)}
-  if(is.null(herds.Network$ram.for.replace)){herds.Network$ram.for.replace = diag(n.herds)}
-  if(is.null(herds.Network$ewe.for.replace)){herds.Network$ewe.for.replace = diag(n.herds)}
-  
-  ramNetwork0 <- herds.Network$ram.for.repro
-  ramNetwork2 <- ramNetwork1 <-  herds.Network$ram.for.replace
-  diag(ramNetwork1) <- 0
-  
-  eweNetwork <- herds.Network$ewe.for.replace
+
+  if(is.null(herds.Network$ram.replace)){herds.Network$ram.replace = diag(n.herds)}
+  if(is.null(herds.Network$ewe.replace)){herds.Network$ewe.replace = diag(n.herds)}
+  if(is.null(herds.Network$ram.circulation)){herds.Network$ram.circulation = matrix(0,n.herds,n.herds)}
   
   if (sum(sapply(herds.Network,function(E){dim(E)}) != n.herds) > 0) {
     stop('At least one network is not of the correct dimension')
   }
+  
+  ram.repro <- herds.Network$ram.repro
+  ram.circulation <- herds.Network$ram.circulation
+  ram.replace <- herds.Network$ram.replace
+  ewe.replace <- herds.Network$ewe.replace
+  
+  diag(ram.circulation) <- 0
+  if (sum(sum(ram.circulation))==0){
+    print('No circulation on ram has been specified. The career.ram value has been adapted')
+    for (i in 1:n.herds){
+      param.allHerds[[i]]$career.ram = param.allHerds[[i]]$age.max.repro.ram
+    }
+  }
+
+
   
   #####################
   
@@ -70,8 +80,9 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     Lfathers <- module.select.parents(LHerds, param.allHerds,sex = 'M')
     
     #--- exchange fathers
-    
-    Lfathers <- module.exchange.ram.for.one.year(Lfathers,ramNetwork0)
+    if(!is.null(ram.repro)){
+      Lfathers <- module.exchange.ram.for.one.year(Lfathers,ram.repro)
+    }
    
     #---------- reproduction
     
@@ -83,19 +94,19 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     LHerds      <- selectRams$LHerds
     
     #--------- replace ram between Herds (first take the old ones that need to circulate then take babies)
-    if (any(rowSums(ramNetwork1)>0)){
-      resultsReplaceRam  <-  module.replace.interHerd(LHerds,Lramstomove ,ExchangeNetwork = ramNetwork1,param.allHerds,sex = 'M')
+    if (any(rowSums(ram.circulation)>0)){
+      resultsReplaceRam  <-  module.replace.interHerd(LHerds,Lramstomove ,ExchangeNetwork = ram.circulation,param.allHerds,sex = 'M')
       LHerds <- resultsReplaceRam$LHerds
     }
     #---------- replace missing and too old rams by newborns
-    resultsReplaceRam  <-  module.replace.interHerd(LHerds,Lnewborns ,ExchangeNetwork = ramNetwork2,param.allHerds,sex = 'M')
+    resultsReplaceRam  <-  module.replace.interHerd(LHerds,Lnewborns ,ExchangeNetwork = ram.replace,param.allHerds,sex = 'M')
     LHerds <- resultsReplaceRam$LHerds
     Lnewborns.togive <-resultsReplaceRam$L.togive
     
     
     #---------- replace missing and old ewe by newborns
     
-    resultsReplaceEwe  <-  module.replace.interHerd(LHerds,Lnewborns.togive ,ExchangeNetwork = eweNetwork,param.allHerds,sex = 'F')
+    resultsReplaceEwe  <-  module.replace.interHerd(LHerds,Lnewborns.togive ,ExchangeNetwork = ewe.replace,param.allHerds,sex = 'F')
     LHerds <- resultsReplaceEwe$LHerds
    
     
