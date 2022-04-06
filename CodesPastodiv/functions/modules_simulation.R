@@ -240,7 +240,7 @@ module.lose <- function(pop.table,loseProportion = 0.5){
 
 
 ################ compute.Inbreeding.Function ###################
-compute.inbreeding = function(LHerds){
+compute.geneal = function(LHerds){
 ####################################################################
   
   n.herds <- length(LHerds)
@@ -264,18 +264,42 @@ compute.inbreeding = function(LHerds){
   
   ped2$father[wf0] <- ped2$mother[wf0]  <- 0 
   ped2$sex  <- 2*(ped$sex=='F') + 1*(ped$sex=='M')
+
   geneal <- gen.genealogy(ped2)
-  u <- which(ped2$herd!=-1)
-  inBreed <- gen.f(geneal,ped2$ind[u])
+  res <- list(geneal=geneal, ped = ped2)
+  return(res)
+}
+################ compute.Inbreeding.Function ###################
+compute.inbreeding = function(geneal, ped){
+####################################################################
   
-  U <- as.data.frame(cbind(ped2$herd[u],inBreed))
+# geneal : result of "gen.genealogy"
+# ped : pedegree of all the individuals
+  
+  u <- which(ped$herd!=-1)
+  inBreed <- gen.f(geneal,ped$ind[u])
+  U <- as.data.frame(cbind(ped$herd[u],inBreed))
   names(U) <- c('herd','inBreed')
   U$herd <- as.factor(U$herd)
   return(U)
 }
 
-################ compute.Inbreeding.Function ###################
+################ compute.Herd Sized .Function ###################
 compute.herds.size = function(LHerds){
 ####################################################################
   return(vapply(LHerds,function(u){sum(u$herd!= - 1)},1))
 }
+
+
+
+################ compute.Kinship.Function ###################
+compute.kinship = function(geneal, ped){
+####################################################################
+  
+  #------------------
+  u <- which(ped$herd!=-1)
+  kinship<-gen.phi(geneal,ped$ind[u], MT = TRUE)
+  res <- list(kinshipMatrix  = kinship, herd = ped$herd[u])
+  return(res)
+}
+

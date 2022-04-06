@@ -116,9 +116,10 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
     # ----- inBreeding                    
                         
    if(computeInbreeding){
-       inBreeding_gen <- compute.inbreeding(LHerds)
-       inBreeding_gen$gen <- gen
-       inBreeding <- rbind(inBreeding, inBreeding_gen)
+     geneal<- compute.geneal(LHerds) 
+     inBreeding_gen <- compute.inbreeding(geneal$geneal, geneal$ped)  
+     inBreeding_gen$gen <- gen
+     inBreeding <- rbind(inBreeding, inBreeding_gen)
       }
   }
   if(computeInbreeding){
@@ -135,3 +136,6 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
   if (computeInbreeding){res$inBreeding = inBreeding}
   return(res)
 }
+
+
+
