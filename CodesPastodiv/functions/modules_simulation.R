@@ -2,7 +2,7 @@ library(plyr)
 library(tidyverse)
 
 ######### Initialize one herd  ########################
-module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
+module.initialize.oneHerd <- function(num.herd,param,seed=NULL,init.genes = NULL){
 ####################################################################
 # num.herd num to identify the herd
 # param list of useful parameters for initialising the herd
@@ -11,6 +11,8 @@ module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
   
   if(is.null(param$age.min.ram)){param$age.min.ram = 0}
   if(is.null(param$age.min.ewe)){param$age.min.ewe = 0}
+  if(is.null(param$nbgenes.coding)){param$nbgenes.coding  = 10}
+  if(is.null(param$nbgenes.noncoding)){param$nbgenes.noncoding  = 10}
   
   
   pop.table = data.frame(ind=paste("0",num.herd,1:(param$n.ewe+param$n.ram),sep="-"),
@@ -20,7 +22,24 @@ module.initialize.oneHerd <- function(num.herd,param,seed=NULL){
                          age = c(sample(param$age.min.ram:(param$age.max.repro.ram-1),replace = T,param$n.ram),
                                  sample(param$age.min.ewe:(param$age.max.repro.ewe-1),replace=T,param$n.ewe)))
   
-  pop.table$time.in.current.herd <- 0
+  pop.table$time.in.current.herd <- 0; 
+
+  
+  ### initialisaiton des genes 
+  nb.genes <- param$nbgenes.coding + param$nbgenes.noncoding
+  if (nb.genes>0){
+    nb.ind <-   param$n.ewe+param$n.ram
+    Genes  <- matrix(sample(c(0,1,2), nb.ind * nb.genes,replace= TRUE, prob = c(1,1,1)), nb.ind, nb.genes)
+    namesCols <- c()
+    if (param$nbgenes.coding>0){
+      namesCols <- c(namesCols, paste('codingGene', 1: param$nbgenes.coding, sep='.'))
+      }
+    if (param$nbgenes.noncoding>0){
+      namesCols <- c(namesCols, paste('noncodingGene', 1: param$nbgenes.noncoding, sep='.'))
+    }
+    colnames(Genes)<- namesCols
+    pop.table <- cbind(pop.table, Genes)
+  }
   return(pop.table)
 }
 ######### Initialize all herds ########################
@@ -91,13 +110,75 @@ module.reproduction.oneHerd = function(mothers,fathers,num.gen,param)
     newborn.table$sex <- sample(c("F","M"), size = n.newborns, replace = T)
     newborn.table$herd <- num.herd; 
     newborn.table$mother <- rep(mothers$ind,n.newborns.per.mother)
-    u <- sample(possible.father,size = n.mothers,replace = T)
+    u <- sample(possible.father,size = n.mothers, prob = compute.val.repro(fathers),replace = T)
     newborn.table$father <- rep(u,n.newborns.per.mother)
+    
+    
+    genes.places.1 <- which(substr(names( newborn.table),1,6)=='coding')[1] # indice de la premiere colonne des genes 
+    genes.places <- genes.places.1:ncol(mothers)
+    browser()
+    for(i in 1:n.newborns){
+     
+      newborn.i <- newborn.table[i, ]
+      genes.mother <- mothers[mothers$ind==newborn.i$mother, genes.places]
+      genes.father <- fathers[fathers$ind==newborn.i$father, genes.places]
+      genes.newborn.i <- simulation.genes.one.newborn(genes.mother,genes.father)
+      newborn.table[i, genes.places] <- genes.newborn.i
+    }
+    
+    ### attribute genes to newborns; 
+    
   }else{
     newborn.table = NULL
   }
   return(newborn.table)
 }
+############ Calcul de la valeur reproductive des males à partir de leurs genes codant
+compute.val.repro = function(pop.father,selectionWeights=NULL){
+  
+  
+  fatherColNames <- names(pop.father)
+  coding <- which(substr(fatherColNames,1,6)=='coding')
+  if(is.null(selectionWeights)){
+    selectionWeights = seq(length(coding),1)
+  }
+  codingGenes <- pop.father[,coding]
+  #browser()
+  
+  return(c(as.matrix(codingGenes) %*%selectionWeights))
+}
+
+############ Calcul des genes des enfants à partir des genes des peres et meres. 
+simulation.genes.one.newborn = function(genes.mother,genes.father){
+  
+  numeric.genes <- 3*genes.mother + genes.father + 1; 
+  
+  myHereditaryMatrix <- matrix(0,9,3);
+  myHereditaryMatrix[1,1] <- 1;     # mother  0  father 0 
+  myHereditaryMatrix[2,1:2] <- 1/2; # mother 0  father 1
+  myHereditaryMatrix[3,2] <- 1;     # mother 0  father 2
+  myHereditaryMatrix[4,1:2] <- c(1/2,1/2);   # mother 1  father 0
+  myHereditaryMatrix[5,] <- c(1/4,1/2,1/4);   # mother 1  father 1
+  myHereditaryMatrix[6,2:3] <- c(1/2,1/2);   # mother 1  father 2
+  myHereditaryMatrix[7,2] <- 1 ;   # mother 2  father 0
+  myHereditaryMatrix[8,2:3] <- c(1/2,1/2) ;   # mother 2  father 1
+  myHereditaryMatrix[9,3] <- 1 ;   # mother 2  father 2
+  
+  return(sapply(1:length(numeric.genes),function(g){sample(c(0,1,2),1, myHereditaryMatrix[numeric.genes[g],],replace = TRUE)}))
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+}
+
+
+
 
 ####### Reproduction all herd #############################
 module.reproduction <- function(Lmothers, Lfathers,num.gen,param.allHerds){

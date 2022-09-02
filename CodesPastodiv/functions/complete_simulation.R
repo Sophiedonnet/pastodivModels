@@ -14,7 +14,10 @@ Simulate.herds = function(n.herds,n.generations,param.allHerds=NULL,herds.Networ
                           age.min.ewe = 0,
                           age.min.repro.ewe = 3,
                           age.min.repro.ram = 1,
-                          career.ram = 2
+                          career.ram = 2,
+                          nbgenes.coding = 10, 
+                          nbgenes.noncoding = 10, 
+                          
     )
     param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
     names(param.default$rate.repro) = c('nb.lambs','probability')

@@ -20,7 +20,7 @@ param.default <- list(n.ram = 2,
                       age.min.repro.ewe = 3,
                       age.min.repro.ram = 1,
                       career.ram  = 3)
-param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0,1,0)))
+param.default$rate.repro = as.data.frame(cbind(c(0,1,2),c(0.3,0.7,0)))
 names(param.default$rate.repro) = c('nb.lambs','probability')
 param = lapply(1:n.herds,function(i) param.default) # here same parameters for all the Herds. 
 
@@ -39,19 +39,22 @@ herds.Network = list(ewe.replace= NULL,ram.replace = ram.Network,ram.circulation
 myparam <- param
 myparam[[1]]$career.ram = 3
 param.allHerds <- myparam
-res <- Simulate.herds(n.herds,n.generations,param.allHerds,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = FALSE)
-LHerds <- res$LHerds
 
-geneal<- compute.geneal(LHerds) 
-inBreeding <- compute.inbreeding(geneal$geneal, geneal$ped)  
+load(file='resSimu/res_simu_with_kinship_independantHerds.Rdata')
+simulatedHerds <- Simulate.herds(n.herds,n.generations,param.allHerds,herds.Network = herds.Network,LHerds=NULL,computeInbreeding  = FALSE)
+#LHerds <- simulatedHerds$LHerds
+#geneal<- compute.geneal(LHerds) 
+#inBreeding <- compute.inbreeding(geneal$geneal, geneal$ped)  
+#res_kinship <-compute.kinship(geneal$geneal, geneal$ped)
+#save(simulatedHerds,inBreeding,res_kinship, file='resSimu/res_simu_with_kinship_independantHerds.Rdata')
+
 ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
 ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() + ggtitle('independant ')
 
 
-
-res_kinship <-compute.kinship(geneal$geneal, geneal$ped)
 mat_kinship <- res_kinship$kinshipMatrix
 plotMyMatrix(mat_kinship)
+
 
 #######################################################################"
 #################" SIMULATION 2 : Hub : one people gives to all the others
@@ -64,28 +67,35 @@ herds.Network = list(ewe.replace= NULL,ram.replace = ram.Network)
 plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")))
 
 
+load(file='resSimu/res_simu_with_kinship_starHerds.Rdata')
+
 #------------- Simulation 
-res <- Simulate.herds(n.herds,n.generations,param.allHerds = param,herds.Network = herds.Network,LHerds = NULL)
-LHerds <- res$LHerds
+#simulatedHerds <- Simulate.herds(n.herds,n.generations,param.allHerds = param,herds.Network = herds.Network,LHerds = NULL)
+LHerds <- simulatedHerds$LHerds
 geneal<- compute.geneal(LHerds) 
 
 
 #---------- InBreeding 
 
-inBreeding <- compute.inbreeding(geneal$geneal, geneal$ped)  
+#inBreeding <- compute.inbreeding(geneal$geneal, geneal$ped)  
 ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
-ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() + ggtitle('independant ')
+ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() + ggtitle('Star network ')
 
 #---------------- Kinship and analyzis
 
 
-res_kinship <- compute.kinship(geneal$geneal, geneal$ped)
+#res_kinship <- compute.kinship(geneal$geneal, geneal$ped)
 mat_kinship <- res_kinship$kinshipMatrix
 plotMyMatrix(mat_kinship)
 
-res_SBM_kinship <- estimateSimpleSBM(mat_kinship,model='gaussian')
-#which.max(res_SBM_kinship$storedModels$ICL)
-#res_SBM_kinship$setModel(24)
+#res_SBM_kinship <- estimateSimpleSBM(mat_kinship,model='gaussian')
+
+#save(simulatedHerds,inBreeding,res_kinship,res_SBM_kinship,  file='resSimu/res_simu_with_kinship_starHerds.Rdata')
+
+
+
+wm <- which.max(res_SBM_kinship$storedModels$ICL)
+res_SBM_kinship$setModel(wm)
 plot(res_SBM_kinship)
 
 blocks <- res_SBM_kinship$memberships
@@ -96,10 +106,10 @@ herds <- geneal$ped$herd[u]
 id_present <- geneal$ped[u,]$ind
 
 length(herds)
-plotMyMatrix(table(herds,blocks),dimLabels = c('Blocks','Herds'),plotOptions=list(legend = TRUE))
+plotMyMatrix(table(herds,blocks),dimLabels = c('Herds','Blocks'),plotOptions=list(legend = TRUE))
 plotAlluvial(list(herds = herds, blocks=blocks)) 
 
-
+table(herds,blocks)
 
 #######################################################################"
 #################" SIMULATION 3 : random network
@@ -116,14 +126,17 @@ while(test){
 plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")),main = "Ram")
 herds.Network = list(ram.replace = ram.Network, ewe.replace =NULL)
 
-res  <- Simulate.herds(n.herds ,n.generations,param.allHerds = param,herds.Network)
-LHerds <- res$LHerds
+load(file='resSimu/res_simu_with_kinship_ErdosHerds.Rdata')
+
+
+simulatedHerds  <- Simulate.herds(n.herds ,n.generations,param.allHerds = param,herds.Network)
+LHerds <- simulatedHerds$LHerds
 geneal<- compute.geneal(LHerds) 
 #---------- InBreeding 
 
 inBreeding <- compute.inbreeding(geneal$geneal, geneal$ped)  
 ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
-ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() + ggtitle('independant ')
+ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() + ggtitle('Erdos')
 
 #---------------- Kinship and analyzis
 
@@ -132,7 +145,13 @@ res_kinship <- compute.kinship(geneal$geneal, geneal$ped)
 mat_kinship <- res_kinship$kinshipMatrix
 plotMyMatrix(mat_kinship)
 
-res_SBM_kinship <- estimateSimpleSBM(mat_kinship,model='gaussian')
+#res_SBM_kinship <- estimateSimpleSBM(mat_kinship,model='gaussian')
+
+#save(simulatedHerds,inBreeding,res_kinship,res_SBM_kinship,  file='resSimu/res_simu_with_kinship_ErdosHerds.Rdata')
+
+
+
+
 plot(res_SBM_kinship)
 
 blocks <- res_SBM_kinship$memberships
@@ -174,14 +193,14 @@ herds.Network = list(ram.circulation = ram.Network, ewe.replace =NULL)
 plot(graph_from_adjacency_matrix(t(ram.Network), mode = c("directed")))
 
 
-res <- Simulate.herds(n.herds ,n.generations,param.allHerds = param,herds.Network)
-LHerds <- res$LHerds
+simulatedHerds  <- Simulate.herds(n.herds ,n.generations,param.allHerds = param,herds.Network)
+LHerds <- simulatedHerds$LHerds
 geneal<- compute.geneal(LHerds) 
 #---------- InBreeding 
 
 inBreeding <- compute.inbreeding(geneal$geneal, geneal$ped)  
 ggplot(inBreeding,aes(x=inBreed)) + geom_histogram()
-ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() + ggtitle('independant ')
+ggplot(inBreeding,aes(col=herd,y=inBreed,x=herd)) + geom_boxplot() + ggtitle('Chain')
 
 #---------------- Kinship and analyzis
 
@@ -191,6 +210,11 @@ mat_kinship <- res_kinship$kinshipMatrix
 plotMyMatrix(mat_kinship)
 
 res_SBM_kinship <- estimateSimpleSBM(mat_kinship,model='gaussian')
+
+save(simulatedHerds,inBreeding,res_kinship,res_SBM_kinship,  file='resSimu/res_simu_with_kinship_ChainHerds.Rdata')
+
+
+
 plot(res_SBM_kinship)
 
 blocks <- res_SBM_kinship$memberships
