@@ -116,7 +116,7 @@ module.reproduction.oneHerd = function(mothers,fathers,num.gen,param)
     
     genes.places.1 <- which(substr(names( newborn.table),1,6)=='coding')[1] # indice de la premiere colonne des genes 
     genes.places <- genes.places.1:ncol(mothers)
-    browser()
+    #browser()
     for(i in 1:n.newborns){
      
       newborn.i <- newborn.table[i, ]
@@ -140,18 +140,19 @@ compute.val.repro = function(pop.father,selectionWeights=NULL){
   fatherColNames <- names(pop.father)
   coding <- which(substr(fatherColNames,1,6)=='coding')
   if(is.null(selectionWeights)){
-    selectionWeights = seq(length(coding),1)
+    selectionWeights = seq(length(coding),1)^2
+    #selectionWeights[3:length(selectionWeights)]=0
   }
   codingGenes <- pop.father[,coding]
-  #browser()
+#  browser()
   
-  return(c(as.matrix(codingGenes) %*%selectionWeights))
+  return(c(as.matrix(codingGenes)^4 %*%selectionWeights)+1)
 }
 
 ############ Calcul des genes des enfants à partir des genes des peres et meres. 
 simulation.genes.one.newborn = function(genes.mother,genes.father){
   
-  numeric.genes <- 3*genes.mother + genes.father + 1; 
+  numeric.genes <- as.vector(as.matrix(3*genes.mother + genes.father + 1)); 
   
   myHereditaryMatrix <- matrix(0,9,3);
   myHereditaryMatrix[1,1] <- 1;     # mother  0  father 0 
@@ -164,17 +165,9 @@ simulation.genes.one.newborn = function(genes.mother,genes.father){
   myHereditaryMatrix[8,2:3] <- c(1/2,1/2) ;   # mother 2  father 1
   myHereditaryMatrix[9,3] <- 1 ;   # mother 2  father 2
   
-  return(sapply(1:length(numeric.genes),function(g){sample(c(0,1,2),1, myHereditaryMatrix[numeric.genes[g],],replace = TRUE)}))
+  return(sapply(1:length(numeric.genes),function(g){sample(c(0,1,2),1, prob=myHereditaryMatrix[numeric.genes[g],],replace = TRUE)}))
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
+ 
 }
 
 
